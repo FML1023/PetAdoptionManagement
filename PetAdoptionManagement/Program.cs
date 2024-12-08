@@ -34,6 +34,7 @@ builder.Services.AddAuthentication(options =>
     .AddIdentityCookies();
 
 builder.Services.AddIdentityCore<PetAdoptionManagementUser>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<PetAdoptionManagementContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();

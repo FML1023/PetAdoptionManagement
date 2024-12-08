@@ -14,6 +14,7 @@
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject RoleManager<IdentityRole> RoleManager
 
 <PageTitle>Register</PageTitle>
 
@@ -31,6 +32,18 @@
                 <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
                 <label for="email">Email</label>
                 <ValidationMessage For="() => Input.Email" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.FirstName" class="form-control"
+                           autocomplete="firstname" aria-required="true" placeholder="Bill" />
+                <label for="email">First Name</label>
+                <ValidationMessage For="() => Input.FirstName" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.LastName" class="form-control"
+                           autocomplete="lastname" aria-required="true" placeholder="Gates" />
+                <label for="email">Last Name</label>
+                <ValidationMessage For="() => Input.LastName" class="text-danger" />
             </div>
             <div class="form-floating mb-3">
                 <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
@@ -72,6 +85,11 @@
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
         var emailStore = GetEmailStore();
         await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+
+        user.FirstName = Input.FirstName;
+        user.LastName = Input.LastName;
+
+
         var result = await UserManager.CreateAsync(user, Input.Password);
 
         if (!result.Succeeded)
@@ -79,6 +97,17 @@
             identityErrors = result.Errors;
             return;
         }
+
+        //create the user role if it doesn't exist
+        if (!await RoleManager.RoleExistsAsync("User"))
+        {
+            await RoleManager.CreateAsync(new IdentityRole("User"));
+        }
+        //add the user to the user role
+        await UserManager.AddToRoleAsync(user, "User");
+        //add the user id as claim when user registers
+        await UserManager.AddClaimAsync(user, new System.Security.Claims.Claim("userId",
+        user.Id));
 
         Logger.LogInformation("User created a new account with password.");
 
@@ -130,6 +159,14 @@
         [EmailAddress]
         [Display(Name = "Email")]
         public string Email { get; set; } = "";
+
+        [Required]
+        [Display(Name = "First Name")]
+        public string FirstName { get; set; } = "";
+        
+        [Required]
+        [Display(Name = "Last Name")]
+        public string LastName { get; set; } = "";
 
         [Required]
         [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
