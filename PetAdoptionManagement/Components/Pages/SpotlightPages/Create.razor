@@ -1,0 +1,59 @@
+﻿@page "/spotlights/create"
+@using Microsoft.EntityFrameworkCore
+@using PetAdoptionManagement.Components.Domain
+@inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Spotlight</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Spotlight" OnValidSubmit="AddSpotlight" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert"/>
+            <div class="mb-3">
+                <label for="startdate" class="form-label">StartDate:</label> 
+                <InputDate id="startdate" @bind-Value="Spotlight.StartDate" class="form-control" /> 
+                <ValidationMessage For="() => Spotlight.StartDate" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="reason" class="form-label">Reason:</label> 
+                <InputText id="reason" @bind-Value="Spotlight.Reason" class="form-control" /> 
+                <ValidationMessage For="() => Spotlight.Reason" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="status" class="form-label">Status:</label> 
+                <InputCheckbox id="status" @bind-Value="Spotlight.Status" class="form-check-input" /> 
+                <ValidationMessage For="() => Spotlight.Status" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="petid" class="form-label">PetId:</label> 
+                <InputNumber id="petid" @bind-Value="Spotlight.PetId" class="form-control" /> 
+                <ValidationMessage For="() => Spotlight.PetId" class="text-danger" /> 
+            </div>        
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/spotlights">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Spotlight Spotlight { get; set; } = new();
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddSpotlight()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Spotlight.Add(Spotlight);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/spotlights");
+    }
+}

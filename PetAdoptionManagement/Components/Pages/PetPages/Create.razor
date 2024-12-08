@@ -1,0 +1,102 @@
+﻿@page "/pets/create"
+@using Microsoft.EntityFrameworkCore
+@using PetAdoptionManagement.Components.Domain
+@inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Pet</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Pet" OnValidSubmit="AddPet" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+
+            <!-- Name Field -->
+            <div class="mb-3">
+                <label for="name" class="form-label">Name:</label>
+                <InputText id="name" @bind-Value="Pet.Name" class="form-control" />
+                <ValidationMessage For="() => Pet.Name" class="text-danger" />
+            </div>
+
+            <!-- Species Field -->
+            <div class="mb-3">
+                <label for="species" class="form-label">Species:</label>
+                <InputText id="species" @bind-Value="Pet.Species" class="form-control" />
+                <ValidationMessage For="() => Pet.Species" class="text-danger" />
+            </div>
+
+            <!-- Breed Field -->
+            <div class="mb-3">
+                <label for="breed" class="form-label">Breed:</label>
+                <InputText id="breed" @bind-Value="Pet.Breed" class="form-control" />
+                <ValidationMessage For="() => Pet.Breed" class="text-danger" />
+            </div>
+
+            <!-- Age Field -->
+            <div class="mb-3">
+                <label for="age" class="form-label">Age:</label>
+                <InputNumber id="age" @bind-Value="Pet.Age" class="form-control" />
+                <ValidationMessage For="() => Pet.Age" class="text-danger" />
+            </div>
+
+            <!-- Description Field -->
+            <div class="mb-3">
+                <label for="description" class="form-label">Description:</label>
+                <InputText id="description" @bind-Value="Pet.Description" class="form-control" />
+                <ValidationMessage For="() => Pet.Description" class="text-danger" />
+            </div>
+
+            <!-- Photos Field -->
+            <div class="mb-3">
+                <label for="photos" class="form-label">Photos (comma-separated URLs):</label>
+                <InputText id="photos" @bind-Value="PetPhotosString" class="form-control" />
+                <ValidationMessage For="() => PetPhotosString" class="text-danger" />
+            </div>
+
+            <!-- Status Field -->
+            <div class="mb-3">
+                <label for="status" class="form-label">Status:</label>
+                <InputCheckbox id="status" @bind-Value="Pet.Status" class="form-check-input" />
+                <ValidationMessage For="() => Pet.Status" class="text-danger" />
+            </div>
+
+            <!-- SpotlightId Field -->
+            <div class="mb-3">
+                <label for="spotlightid" class="form-label">SpotlightId:</label>
+                <InputNumber id="spotlightid" @bind-Value="Pet.SpotlightId" class="form-control" />
+                <ValidationMessage For="() => Pet.SpotlightId" class="text-danger" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/pets">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Pet Pet { get; set; } = new Pet();
+
+    // Create a string property to temporarily bind to the input field
+    public string PetPhotosString
+    {
+        get => string.Join(",", Pet.Photos ?? new List<string>());
+        set => Pet.Photos = string.IsNullOrWhiteSpace(value) ? new List<string>() : value.Split(',').Select(p => p.Trim()).ToList();
+    }
+
+    private async Task AddPet()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Pet.Add(Pet);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/pets");
+    }
+}

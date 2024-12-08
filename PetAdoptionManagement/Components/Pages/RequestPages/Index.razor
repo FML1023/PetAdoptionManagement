@@ -1,0 +1,39 @@
+﻿@page "/requests"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using PetAdoptionManagement.Components.Domain
+@using PetAdoptionManagement.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="requests/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="context.Request">
+    <PropertyColumn Property="request => request.DateCreated" />
+    <PropertyColumn Property="request => request.ReviewStatus" />
+    <PropertyColumn Property="request => request.PetID" />
+    <PropertyColumn Property="request => request.UserID" />
+
+    <TemplateColumn Context="request">
+        <a href="@($"requests/edit?id={request.Id}")">Edit</a> |
+        <a href="@($"requests/details?id={request.Id}")">Details</a> |
+        <a href="@($"requests/delete?id={request.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private PetAdoptionManagementContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

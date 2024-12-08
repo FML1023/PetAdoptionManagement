@@ -1,0 +1,76 @@
+﻿@page "/applications/create"
+@using Microsoft.EntityFrameworkCore
+@using PetAdoptionManagement.Components.Domain
+@inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Application</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Application" OnValidSubmit="AddApplication" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+
+            <div class="mb-3">
+                <label for="datecreated" class="form-label">DateCreated:</label>
+                <InputDate id="datecreated" @bind-Value="Application.DateCreated" class="form-control" />
+                <ValidationMessage For="() => Application.DateCreated" class="text-danger" />
+            </div>
+
+            <!-- Review Status Dropdown -->
+            <div class="mb-3">
+                <label for="reviewstatus" class="form-label">Review Status:</label>
+                <select id="reviewstatus" @bind="Application.ReviewStatus" class="form-control">
+                    @foreach (var status in Enum.GetValues(typeof(ReviewStatusEnum)))
+                    {
+                        <option value="@status">@status</option>
+                    }
+                </select>
+                <ValidationMessage For="() => Application.ReviewStatus" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label for="createdby" class="form-label">Created By:</label>
+                <InputText id="createdby" @bind-Value="Application.CreatedBy" class="form-control" />
+                <ValidationMessage For="() => Application.CreatedBy" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label for="petid" class="form-label">PetID:</label>
+                <InputNumber id="petid" @bind-Value="Application.PetID" class="form-control" />
+                <ValidationMessage For="() => Application.PetID" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label for="userid" class="form-label">UserID:</label>
+                <InputNumber id="userid" @bind-Value="Application.UserID" class="form-control" />
+                <ValidationMessage For="() => Application.UserID" class="text-danger" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/applications">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Application Application { get; set; } = new();
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddApplication()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Application.Add(Application);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/applications");
+    }
+}

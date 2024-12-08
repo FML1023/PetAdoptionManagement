@@ -1,0 +1,62 @@
+﻿@page "/adopters/details"
+@using Microsoft.EntityFrameworkCore
+@using PetAdoptionManagement.Components.Domain
+@inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>Adopter</h2>
+    <hr />
+    @if (adopter is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Name</dt>
+            <dd class="col-sm-10">@adopter.Name</dd>
+            <dt class="col-sm-2">Email</dt>
+            <dd class="col-sm-10">@adopter.Email</dd>
+            <dt class="col-sm-2">LivingSituation</dt>
+            <dd class="col-sm-10">@adopter.LivingSituation</dd>
+            <dt class="col-sm-2">OtherPets</dt>
+            <dd class="col-sm-10">@adopter.OtherPets</dd>
+            <dt class="col-sm-2">PetExperience</dt>
+            <dd class="col-sm-10">@adopter.PetExperience</dd>
+            <dt class="col-sm-2">Age</dt>
+            <dd class="col-sm-10">@adopter.Age</dd>
+            <dt class="col-sm-2">Address</dt>
+            <dd class="col-sm-10">@adopter.Address</dd>
+            <dt class="col-sm-2">ReviewStatus</dt>
+            <dd class="col-sm-10">@adopter.ReviewStatus</dd>
+            <dt class="col-sm-2">UserId</dt>
+            <dd class="col-sm-10">@adopter.UserId</dd>
+        </dl>
+        <div>
+            <a href="@($"/adopters/edit?id={adopter.Id}")">Edit</a> |
+            <a href="@($"/adopters")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private Adopter? adopter;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        adopter = await context.Adopter.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (adopter is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

@@ -1,0 +1,92 @@
+﻿@page "/adopters/create"
+@using Microsoft.EntityFrameworkCore
+@using PetAdoptionManagement.Components.Domain
+@inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Adopter</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Adopter" OnValidSubmit="AddAdopter" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+            <div class="mb-3">
+                <label for="name" class="form-label">Name:</label>
+                <InputText id="name" @bind-Value="Adopter.Name" class="form-control" />
+                <ValidationMessage For="() => Adopter.Name" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email:</label>
+                <InputText id="email" @bind-Value="Adopter.Email" class="form-control" />
+                <ValidationMessage For="() => Adopter.Email" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="livingsituation" class="form-label">Living Situation:</label>
+                <InputText id="livingsituation" @bind-Value="Adopter.LivingSituation" class="form-control" />
+                <ValidationMessage For="() => Adopter.LivingSituation" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="otherpets" class="form-label">Other Pets:</label>
+                <InputText id="otherpets" @bind-Value="Adopter.OtherPets" class="form-control" />
+                <ValidationMessage For="() => Adopter.OtherPets" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="petexperience" class="form-label">Pet Experience:</label>
+                <InputText id="petexperience" @bind-Value="Adopter.PetExperience" class="form-control" />
+                <ValidationMessage For="() => Adopter.PetExperience" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="age" class="form-label">Age:</label>
+                <InputNumber id="age" @bind-Value="Adopter.Age" class="form-control" />
+                <ValidationMessage For="() => Adopter.Age" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="address" class="form-label">Address:</label>
+                <InputText id="address" @bind-Value="Adopter.Address" class="form-control" />
+                <ValidationMessage For="() => Adopter.Address" class="text-danger" />
+            </div>
+
+            <!-- Updated ReviewStatus Dropdown -->
+            <div class="mb-3">
+                <label for="reviewstatus" class="form-label">Review Status:</label>
+                <select id="reviewstatus" @bind="Adopter.ReviewStatus" class="form-control">
+                    <option value="@ReviewStatusEnum.Pending">@ReviewStatusEnum.Pending</option>
+                    <option value="@ReviewStatusEnum.Approved">@ReviewStatusEnum.Approved</option>
+                    <option value="@ReviewStatusEnum.Rejected">@ReviewStatusEnum.Rejected</option>
+                </select>
+                <ValidationMessage For="() => Adopter.ReviewStatus" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label for="userid" class="form-label">User Id:</label>
+                <InputNumber id="userid" @bind-Value="Adopter.UserId" class="form-control" />
+                <ValidationMessage For="() => Adopter.UserId" class="text-danger" />
+            </div>
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/adopters">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Adopter Adopter { get; set; } = new();
+
+        // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+        private async Task AddAdopter()
+        {
+            using var context = DbFactory.CreateDbContext();
+            context.Adopter.Add(Adopter);
+            await context.SaveChangesAsync();
+            NavigationManager.NavigateTo("/adopters");
+        }
+    }
+}

@@ -1,0 +1,39 @@
+﻿@page "/spotlights"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using PetAdoptionManagement.Components.Domain
+@using PetAdoptionManagement.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="spotlights/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="context.Spotlight">
+    <PropertyColumn Property="spotlight => spotlight.StartDate" />
+    <PropertyColumn Property="spotlight => spotlight.Reason" />
+    <PropertyColumn Property="spotlight => spotlight.Status" />
+    <PropertyColumn Property="spotlight => spotlight.PetId" />
+
+    <TemplateColumn Context="spotlight">
+        <a href="@($"spotlights/edit?id={spotlight.Id}")">Edit</a> |
+        <a href="@($"spotlights/details?id={spotlight.Id}")">Details</a> |
+        <a href="@($"spotlights/delete?id={spotlight.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private PetAdoptionManagementContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

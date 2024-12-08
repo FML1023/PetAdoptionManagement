@@ -1,0 +1,138 @@
+﻿@page "/adopters/edit"
+@using Microsoft.EntityFrameworkCore
+@using PetAdoptionManagement.Components.Domain
+@inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>Adopter</h2>
+<hr />
+@if (Adopter is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Adopter" OnValidSubmit="UpdateAdopter" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert" />
+                <input type="hidden" name="Adopter.Id" value="@Adopter.Id" />
+
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name:</label>
+                    <InputText id="name" @bind-Value="Adopter.Name" class="form-control" />
+                    <ValidationMessage For="() => Adopter.Name" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email:</label>
+                    <InputText id="email" @bind-Value="Adopter.Email" class="form-control" />
+                    <ValidationMessage For="() => Adopter.Email" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="livingsituation" class="form-label">Living Situation:</label>
+                    <InputText id="livingsituation" @bind-Value="Adopter.LivingSituation" class="form-control" />
+                    <ValidationMessage For="() => Adopter.LivingSituation" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="otherpets" class="form-label">Other Pets:</label>
+                    <InputText id="otherpets" @bind-Value="Adopter.OtherPets" class="form-control" />
+                    <ValidationMessage For="() => Adopter.OtherPets" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="petexperience" class="form-label">Pet Experience:</label>
+                    <InputText id="petexperience" @bind-Value="Adopter.PetExperience" class="form-control" />
+                    <ValidationMessage For="() => Adopter.PetExperience" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="age" class="form-label">Age:</label>
+                    <InputNumber id="age" @bind-Value="Adopter.Age" class="form-control" />
+                    <ValidationMessage For="() => Adopter.Age" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="address" class="form-label">Address:</label>
+                    <InputText id="address" @bind-Value="Adopter.Address" class="form-control" />
+                    <ValidationMessage For="() => Adopter.Address" class="text-danger" />
+                </div>
+
+                <!-- Updated ReviewStatus Dropdown -->
+                <div class="mb-3">
+                    <label for="reviewstatus" class="form-label">Review Status:</label>
+                    <select id="reviewstatus" @bind="Adopter.ReviewStatus" class="form-control">
+                        <option value="@ReviewStatusEnum.Pending">@ReviewStatusEnum.Pending</option>
+                        <option value="@ReviewStatusEnum.Approved">@ReviewStatusEnum.Approved</option>
+                        <option value="@ReviewStatusEnum.Rejected">@ReviewStatusEnum.Rejected</option>
+                    </select>
+                    <ValidationMessage For="() => Adopter.ReviewStatus" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="userid" class="form-label">User Id:</label>
+                    <InputNumber id="userid" @bind-Value="Adopter.UserId" class="form-control" />
+                    <ValidationMessage For="() => Adopter.UserId" class="text-danger" />
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/adopters">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Adopter? Adopter { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Adopter ??= await context.Adopter.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Adopter is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateAdopter()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Adopter!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!AdopterExists(Adopter!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/adopters");
+    }
+
+    private bool AdopterExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Adopter.Any(e => e.Id == id);
+    }
+}

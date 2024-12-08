@@ -1,0 +1,52 @@
+﻿@page "/spotlights/details"
+@using Microsoft.EntityFrameworkCore
+@using PetAdoptionManagement.Components.Domain
+@inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>Spotlight</h2>
+    <hr />
+    @if (spotlight is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">StartDate</dt>
+            <dd class="col-sm-10">@spotlight.StartDate</dd>
+            <dt class="col-sm-2">Reason</dt>
+            <dd class="col-sm-10">@spotlight.Reason</dd>
+            <dt class="col-sm-2">Status</dt>
+            <dd class="col-sm-10">@spotlight.Status</dd>
+            <dt class="col-sm-2">PetId</dt>
+            <dd class="col-sm-10">@spotlight.PetId</dd>
+        </dl>
+        <div>
+            <a href="@($"/spotlights/edit?id={spotlight.Id}")">Edit</a> |
+            <a href="@($"/spotlights")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private Spotlight? spotlight;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        spotlight = await context.Spotlight.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (spotlight is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

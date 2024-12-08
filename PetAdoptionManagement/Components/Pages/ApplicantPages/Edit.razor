@@ -1,0 +1,124 @@
+﻿@page "/applicants/edit"
+@using Microsoft.EntityFrameworkCore
+@using PetAdoptionManagement.Components.Domain
+@inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>Applicant</h2>
+<hr />
+@if (Applicant is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Applicant" OnValidSubmit="UpdateApplicant" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert" />
+                <input type="hidden" name="Applicant.Id" value="@Applicant.Id" />
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name:</label>
+                    <InputText id="name" @bind-Value="Applicant.Name" class="form-control" />
+                    <ValidationMessage For="() => Applicant.Name" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email:</label>
+                    <InputText id="email" @bind-Value="Applicant.Email" class="form-control" />
+                    <ValidationMessage For="() => Applicant.Email" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="age" class="form-label">Age:</label>
+                    <InputNumber id="age" @bind-Value="Applicant.Age" class="form-control" />
+                    <ValidationMessage For="() => Applicant.Age" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="address" class="form-label">Address:</label>
+                    <InputText id="address" @bind-Value="Applicant.Address" class="form-control" />
+                    <ValidationMessage For="() => Applicant.Address" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="phonenumber" class="form-label">PhoneNumber:</label>
+                    <InputText id="phonenumber" @bind-Value="Applicant.PhoneNumber" class="form-control" />
+                    <ValidationMessage For="() => Applicant.PhoneNumber" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="reviewstatus" class="form-label">Review Status:</label>
+                    <select id="reviewstatus" @bind="Applicant.ReviewStatus" class="form-control">
+                        @foreach (var status in Enum.GetValues(typeof(ReviewStatusEnum)))
+                        {
+                            <option value="@status">@status</option>
+                        }
+                    </select>
+                    <ValidationMessage For="() => Applicant.ReviewStatus" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="userid" class="form-label">UserId:</label>
+                    <InputNumber id="userid" @bind-Value="Applicant.UserId" class="form-control" />
+                    <ValidationMessage For="() => Applicant.UserId" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/applicants">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Applicant? Applicant { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Applicant ??= await context.Applicant.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Applicant is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    private async Task UpdateApplicant()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Applicant!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!ApplicantExists(Applicant!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/applicants");
+    }
+
+    private bool ApplicantExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Applicant.Any(e => e.Id == id);
+    }
+}
+}
