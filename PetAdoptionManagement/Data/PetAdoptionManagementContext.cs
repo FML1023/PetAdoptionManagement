@@ -1,19 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using PetAdoptionManagement.Components.Domain;
+using PetAdoptionManagement.Data;
 
 namespace PetAdoptionManagement.Data
 {
-    public class PetAdoptionManagementContext : DbContext
+    public class PetAdoptionManagementContext(DbContextOptions<PetAdoptionManagementContext> options) : IdentityDbContext<PetAdoptionManagementUser>(options)
     {
-        public PetAdoptionManagementContext (DbContextOptions<PetAdoptionManagementContext> options)
-            : base(options)
-        {
-        }
-
         public DbSet<PetAdoptionManagement.Components.Domain.Adopter> Adopter { get; set; } = default!;
         public DbSet<PetAdoptionManagement.Components.Domain.Applicant> Applicant { get; set; } = default!;
         public DbSet<PetAdoptionManagement.Components.Domain.Application> Application { get; set; } = default!;
