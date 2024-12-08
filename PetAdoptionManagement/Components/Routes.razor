@@ -1,11 +1,21 @@
-﻿@using PetAdoptionManagement.Components.Account.Shared
-<Router AppAssembly="typeof(Program).Assembly">
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using PetAdoptionManagement.Components.Account.Shared
+@using PetAdoptionManagement.Components.Layout
+
+<Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
-        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(PetAdoptionManagement.Components.Layout.MainLayout)">
             <NotAuthorized>
-                <RedirectToLogin />
+                <p>You are not authorized to view this page.</p>
             </NotAuthorized>
         </AuthorizeRouteView>
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
+    <NotFound>
+        <LayoutView Layout="typeof(PetAdoptionManagement.Components.Layout.MainLayout)">
+            <h1>Page Not Found</h1>
+            <p>Sorry, we couldn't find the page you were looking for.</p>
+        </LayoutView>
+    </NotFound>
 </Router>
+

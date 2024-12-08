@@ -1,7 +1,86 @@
 ﻿@page "/"
+@using PetAdoptionManagement.Components.Domain
+@inject NavigationManager NavigationManager
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Find your new best pet!</PageTitle>
 
-<h1>Hello, world!</h1>
+<div style="text-align: center; margin-top: 50px;">
+    <h1>Find your new best pet!</h1>
+    <h2>Introduce a new pet friend into your family today!</h2>
+    <button class="btn btn-primary mt-3" @onclick="NavigateToPets">Get Started</button>
+</div>
 
-Welcome to your new app.
+<hr />
+
+<div style="text-align: center; margin-top: 50px;">
+    <h3>Spotlight</h3>
+    <p>Meet the pets who have been waiting the longest for a forever home.</p>
+
+    @if (SpotlightPets == null)
+    {
+        <p>Loading spotlight pets...</p>
+    }
+    else if (!SpotlightPets.Any())
+    {
+        <p>No pets in the spotlight at the moment.</p>
+    }
+    else
+    {
+        <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 20px;">
+            @foreach (var pet in SpotlightPets)
+            {
+                <div class="card" style="width: 250px;">
+                    @if (pet.Photos != null && pet.Photos.Any())
+                    {
+                        <img src="@pet.Photos[0]" alt="Pet Photo" class="card-img-top" style="height: 200px; object-fit: cover;" />
+                    }
+                    else
+                    {
+                        <img src="placeholder.jpg" alt="No Photo Available" class="card-img-top" style="height: 200px; object-fit: cover;" />
+                    }
+
+                    <div class="card-body">
+                        <h5 class="card-title">@pet.Name</h5>
+                        <p class="card-text">@pet.Description</p>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<Pet>? SpotlightPets;
+
+    protected override async Task OnInitializedAsync()
+    {
+        SpotlightPets = await FetchSpotlightPets();
+    }
+
+    private async Task<List<Pet>> FetchSpotlightPets()
+    {
+       
+        return new List<Pet>
+        {
+            new Pet
+            {
+                Name = "Max",
+                Description = "A playful golden retriever.",
+                Photos = new List<string> { "max-photo.jpg" },
+                SpotlightId = 1
+            },
+            new Pet
+            {
+                Name = "Bella",
+                Description = "A cuddly kitten looking for love.",
+                Photos = new List<string> { "bella-photo.jpg" },
+                SpotlightId = 2
+            }
+        };
+    }
+
+    private void NavigateToPets()
+    {
+        NavigationManager.NavigateTo("/pets");
+    }
+}

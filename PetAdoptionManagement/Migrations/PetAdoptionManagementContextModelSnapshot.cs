@@ -47,6 +47,20 @@ namespace PetAdoptionManagement.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "ad2bcf0c-20db-474f-8407-5a6b159518ba",
+                            Name = "Administrator",
+                            NormalizedName = "ADMINISTRATOR"
+                        },
+                        new
+                        {
+                            Id = "bd2bcf0c-20db-474f-8407-5a6b159518bb",
+                            Name = "User",
+                            NormalizedName = "USER"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -134,6 +148,13 @@ namespace PetAdoptionManagement.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = "3781efa7-66dc-47f0-860f-e506d04102e4",
+                            RoleId = "ad2bcf0c-20db-474f-8407-5a6b159518ba"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -475,6 +496,26 @@ namespace PetAdoptionManagement.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "3781efa7-66dc-47f0-860f-e506d04102e4",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "b652cd09-9a85-4ea5-88e9-62430a780b58",
+                            Email = "admin@localhost.com",
+                            EmailConfirmed = true,
+                            FirstName = "Admin",
+                            LastName = "User",
+                            LockoutEnabled = false,
+                            NormalizedEmail = "ADMIN@LOCALHOST.COM",
+                            NormalizedUserName = "ADMIN@LOCALHOST.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAEG0ENj61QpZIRklecRLxqI/xXx+vKbG8TjKdhOuH4xw3fABvRIrUxC/KXFpC8zDeRQ==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "2cc9c6c0-e0f7-472e-9ab6-59060160c035",
+                            TwoFactorEnabled = false,
+                            UserName = "admin@localhost.com"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
