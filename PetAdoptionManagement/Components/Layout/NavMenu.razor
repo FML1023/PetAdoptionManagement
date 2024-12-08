@@ -1,5 +1,6 @@
 ﻿@implements IDisposable
 @inject NavigationManager NavigationManager
+
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">PetAdoptionManagement</a>
@@ -10,23 +11,77 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
+        <!-- Home -->
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
             </NavLink>
         </div>
 
+        <!-- Counter -->
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="counter">
                 <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
             </NavLink>
         </div>
 
+        <!-- Weather -->
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="weather">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
             </NavLink>
         </div>
+
+        <!-- Requests -->
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="requests">
+                <span class="bi bi-file-earmark-text-nav-menu" aria-hidden="true"></span> Requests
+            </NavLink>
+        </div>
+
+        <!-- Applications -->
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="applications">
+                <span class="bi bi-clipboard-check-nav-menu" aria-hidden="true"></span> Applications
+            </NavLink>
+        </div>
+
+        <!-- Pets -->
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="pets">
+                <span class="bi bi-heart-fill-nav-menu" aria-hidden="true"></span> Pets
+            </NavLink>
+        </div>
+
+        <!-- Applicants -->
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="applicants">
+                <span class="bi bi-people-fill-nav-menu" aria-hidden="true"></span> Applicants
+            </NavLink>
+        </div>
+
+        <!-- Adopters -->
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="adopters">
+                <span class="bi bi-person-hearts-nav-menu" aria-hidden="true"></span> Adopters
+            </NavLink>
+        </div>
+
+        <!-- Spotlight -->
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="spotlights">
+                <span class="bi bi-star-fill-nav-menu" aria-hidden="true"></span> Spotlights
+            </NavLink>
+        </div>
+
+        <!-- Users -->
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="users">
+                <span class="bi bi-people-fill-nav-menu" aria-hidden="true"></span> Users
+            </NavLink>
+        </div>
+
+        <!-- Account Section -->
         <AuthorizeView>
             <Authorized>
                 <div class="nav-item px-3">
@@ -62,6 +117,7 @@
 
 @code {
     private string? currentUrl;
+
     protected override void OnInitialized()
     {
         currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
@@ -78,5 +134,4 @@
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
-
 }

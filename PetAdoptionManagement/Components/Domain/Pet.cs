@@ -7,7 +7,7 @@
         public string? Breed { get; set; }
         public int Age { get; set; }
         public string? Description { get; set; }
-        public ICollection<string>? Photos { get; set; } 
+        public IList<string>? Photos { get; set; } 
         public bool Status { get; set; }
         public int SpotlightId { get; set; }
     }
