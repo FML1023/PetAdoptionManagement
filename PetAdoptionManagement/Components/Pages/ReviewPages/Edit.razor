@@ -1,0 +1,147 @@
+﻿@page "/reviews/edit"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using PetAdoptionManagement.Components.Domain
+@inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<PetAdoptionManagementUser> UserManager
+
+<PageTitle>Edit Review</PageTitle>
+
+<div class="container-fluid p-0" style="font-family: 'Poppins', sans-serif;
+            background: #FFD194;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 0;">
+    <div class="container" style="max-width: 600px; width: 100%;">
+        <div class="card shadow-sm" style="border-radius: 15px; background: #fff8e1; padding: 2rem;">
+            <h1 class="mb-4" style="color: #D1913C;">Edit Review</h1>
+
+            @if (isLoading)
+            {
+                <p>Loading...</p>
+            }
+            else if (showSuccessMessage)
+            {
+                <div class="alert alert-success mt-3 text-center" style="border-radius: 15px; padding: 1rem;">
+                    🎉 Review updated successfully! Redirecting...
+                </div>
+            }
+            else if (Review != null)
+            {
+                <EditForm Model="@Review" OnValidSubmit="UpdateReview">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" />
+
+                    <!-- Read-Only Fields -->
+                    <div class="mb-3">
+                        <label for="petName" class="form-label">Pet Name:</label>
+                        <p class="form-control-plaintext">@Pet?.Name</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="createdAt" class="form-label">Created At:</label>
+                        <p class="form-control-plaintext">@Review.CreatedAt.ToString("yyyy-MM-dd HH:mm")</p>
+                    </div>
+
+                    <!-- Editable Review Text -->
+                    <div class="mb-3">
+                        <label for="reviewText" class="form-label">Your Review:</label>
+                        <InputTextArea id="reviewText" @bind-Value="Review.ReviewText" class="form-control" />
+                        <ValidationMessage For="() => Review.ReviewText" class="text-danger" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100" style="border-radius: 25px;">Save Changes</button>
+                </EditForm>
+            }
+
+            <div class="text-center mt-4">
+                <a href="/reviews" class="btn btn-outline-secondary" style="border-radius: 25px;">Back to Reviews</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    private Pet? Pet;
+    private Review? Review;
+    private bool isLoading = true;
+    private bool showSuccessMessage = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        Review = await context.Review.Include(r => r.Pet).FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Review == null)
+        {
+            Console.WriteLine("Review not found. Redirecting...");
+            NavigationManager.NavigateTo("/notfound");
+            return;
+        }
+
+        Pet = Review.Pet;
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated != true)
+        {
+            Console.WriteLine("User is not authenticated. Redirecting...");
+            NavigationManager.NavigateTo("/Account/Login");
+            return;
+        }
+
+        var appUser = await UserManager.GetUserAsync(user);
+        if (appUser == null || Review.UserId != appUser.Id)
+        {
+            Console.WriteLine("Unauthorized access. Redirecting...");
+            NavigationManager.NavigateTo("/reviews");
+            return;
+        }
+
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task UpdateReview()
+    {
+        if (Review == null) return;
+
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            var existingReview = await context.Review.FirstOrDefaultAsync(r => r.Id == Review.Id);
+
+            if (existingReview == null)
+            {
+                Console.WriteLine("Review not found. Redirecting...");
+                NavigationManager.NavigateTo("/notfound");
+                return;
+            }
+
+            // Update review text
+            existingReview.ReviewText = Review.ReviewText;
+
+            await context.SaveChangesAsync();
+            Console.WriteLine("Review updated successfully!");
+
+            showSuccessMessage = true;
+            StateHasChanged();
+
+            await Task.Delay(2000); // Wait for 2 seconds before redirecting
+            NavigationManager.NavigateTo("/reviews");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating review: {ex.Message}");
+        }
+    }
+}
+

@@ -1,30 +1,53 @@
 ﻿@page "/about"
 
-<div class="container-fluid p-0" style="font-family: 'Poppins', sans-serif; background: #fff8e1; min-height: 100vh; position: relative;">
+<div class="container-fluid p-0" style="font-family: 'Poppins', sans-serif; background: linear-gradient(to bottom, #FFD194, #D1913C); min-height: 100vh; position: relative;">
+
+    <!-- Hero Section -->
+    <div class="text-center text-white py-5" style="background: rgba(0, 0, 0, 0.4);">
+        <h1 class="display-4 fw-bold" style="letter-spacing: 2px;">About Us</h1>
+        <p class="lead" style="max-width: 700px; margin: 0 auto; opacity: 0.9;">
+            Bringing joy, love, and companionship to every home—one paw at a time.
+        </p>
+    </div>
+
     <!-- Back to Home Button -->
-    <a class="btn btn-outline-primary" href="/" style="position: absolute; top: 20px; right: 20px; border-radius: 25px;">
-        Back to Home
+    <a class="btn btn-outline-light position-absolute" href="/"
+       style="top: 20px; right: 20px; border-radius: 25px; font-size: 1rem; padding: 10px 20px; transition: 0.3s ease;">
+        ⬅ Back to Home
     </a>
 
-    <!-- Page Title -->
-    <div class="container mt-5">
-        <h1 class="text-center mb-4" style="color: #333;">About Us</h1>
-
-        <!-- Content Section -->
+    <!-- Content Section -->
+    <div class="container py-5">
         <div class="row justify-content-center">
             <div class="col-lg-10">
-                <p style="font-size: 1.2rem; line-height: 1.8; color: #555;">
-                    At <strong>Paws & Claws</strong>, we believe in the magic of companionship. Pets are not just animals; they are family members who bring love, laughter, and unforgettable moments into our lives. From wagging tails to gentle purrs, their presence fills our homes with joy and unconditional affection. Our mission is simple yet powerful: to create meaningful connections between pets and people, ensuring that every animal finds a warm, loving home and every family discovers the perfect addition to their lives.
-                </p>
-                <p style="font-size: 1.2rem; line-height: 1.8; color: #555;">
-                    Founded on the principles of compassion and care, Paws & Claws has become a trusted name in pet adoption. We work tirelessly with local shelters, breeders, and rescue organizations to provide a wide range of pets, each waiting for their forever family. Our team is dedicated to making the adoption process smooth, transparent, and heartwarming. Whether you’re adopting your first pet or welcoming a new friend to your family, we’re here to guide you every step of the way.
-                </p>
-                <p style="font-size: 1.2rem; line-height: 1.8; color: #555;">
-                    Beyond pet adoption, we are passionate about creating a supportive community for pet lovers. Through workshops, events, and resources, we empower families with the knowledge and tools needed to care for their furry companions. From training tips to health advice, our commitment doesn’t end when you bring your new friend home—it’s a lifelong journey of support and care. Together, we build stronger bonds, ensuring that every pet and owner shares a fulfilling and joyful life.
-                </p>
-                <p style="font-size: 1.2rem; line-height: 1.8; color: #555;">
-                    Paws & Claws is more than just an organization; it’s a movement to celebrate the beauty of human-animal connections. Every adoption is a story of hope, and every pet is a testament to resilience and love. Join us in our mission to transform lives, one paw at a time. Together, let’s create a world where every pet has a home, and every home is filled with the boundless love of a furry friend.
-                </p>
+                <div class="card shadow-lg p-4" style="border-radius: 20px; background: #fff8e1;">
+
+                    <p class="fs-5" style="line-height: 1.8; color: #444;">
+                        At <strong>Paws & Claws</strong>, we believe pets are more than animals—they are **family members** who bring love, laughter, and unforgettable moments into our lives. Our mission is to create **meaningful connections** between pets and people, ensuring every animal finds a warm, loving home.
+                    </p>
+
+                    <p class="fs-5" style="line-height: 1.8; color: #444;">
+                        <strong>🐾 Who We Are:</strong> Founded with compassion and care, **Paws & Claws** is a trusted name in pet adoption. We collaborate with **shelters, rescue groups, and ethical breeders** to connect families with their **perfect furry companions**.
+                    </p>
+
+                    <p class="fs-5" style="line-height: 1.8; color: #444;">
+                        <strong>💛 Our Commitment:</strong> Beyond adoption, we are **passionate about educating pet owners**. Through workshops, adoption events, and **free resources**, we equip families with knowledge on **pet training, health, and behavior**.
+                    </p>
+
+                    <p class="fs-5" style="line-height: 1.8; color: #444;">
+                        <strong>🏡 Our Vision:</strong> Every adoption is a **story of hope**. At Paws & Claws, we believe in a world where **every pet has a home, and every home has the love of a pet**.
+                    </p>
+
+                    <p class="fs-5 text-center mt-4" style="color: #444;">
+                        **Join us in making a difference. Adopt. Love. Inspire.** 🐶🐱
+                    </p>
+
+                    <!-- Call to Action -->
+                    <div class="text-center mt-4">
+                        <a href="/pets" class="btn btn-lg btn-primary px-5 py-2" style="border-radius: 25px;">Browse Available Pets 🐾</a>
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>

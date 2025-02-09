@@ -72,7 +72,7 @@
     {
         var dbContext = await DbFactory.CreateDbContextAsync();
 
-        // ✅ Filter pets by `Status == true` 
+        // Filter pets by `Status == true` 
         pets = await dbContext.Pet
         .Include(p => p.User)
             .Where(p => p.Status)
@@ -80,7 +80,7 @@
 
         filteredPets = pets;
 
-        // ✅ Extract query parameter correctly
+        // Extract query parameter correctly
         var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
         var queryParams = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
 
@@ -103,10 +103,10 @@
 
     private void OnSearchSubmitted()
     {
-        // ✅ Update URL without page refresh
+        // Update URL without page refresh
         Navigation.NavigateTo($"/pets?search={Uri.EscapeDataString(searchQuery)}", forceLoad: false);
 
-        // ✅ Apply the filter immediately
+        // Apply the filter immediately
         FilterPets();
     }
 }

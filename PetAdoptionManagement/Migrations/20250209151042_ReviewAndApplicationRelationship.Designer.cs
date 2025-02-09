@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PetAdoptionManagement.Data;
 
@@ -11,9 +12,11 @@ using PetAdoptionManagement.Data;
 namespace PetAdoptionManagement.Migrations
 {
     [DbContext(typeof(PetAdoptionManagementContext))]
-    partial class PetAdoptionManagementContextModelSnapshot : ModelSnapshot
+    [Migration("20250209151042_ReviewAndApplicationRelationship")]
+    partial class ReviewAndApplicationRelationship
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -276,6 +279,9 @@ namespace PetAdoptionManagement.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("ApplicationId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -292,6 +298,9 @@ namespace PetAdoptionManagement.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId")
+                        .IsUnique();
 
                     b.HasIndex("PetId");
 
@@ -437,7 +446,7 @@ namespace PetAdoptionManagement.Migrations
                         {
                             Id = "3781efa7-66dc-47f0-860f-e506d04102e4",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "b929e063-83f3-47ce-ab2e-19b6f2bc1fc9",
+                            ConcurrencyStamp = "9192e230-c818-4204-b99c-c298eafcf3ed",
                             Email = "admin@localhost.com",
                             EmailConfirmed = true,
                             FirstName = "Admin",
@@ -445,9 +454,9 @@ namespace PetAdoptionManagement.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@LOCALHOST.COM",
                             NormalizedUserName = "ADMIN@LOCALHOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEPqsE1LJ68mP0FpslCaV67060uPxXcp/kQFK/gXMduHzA6BvpTflQuwELp36VgGOUg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEOha3d2bJIMvhSpxbyqRcWM/jqQo9WYmOa2kuoOIsxp42l+2NNhOVcdydD/nFoYEhg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "62082abc-2e43-40e1-9d4c-6b50013636bd",
+                            SecurityStamp = "ebd6ef89-90df-4ddb-91b7-a2013dca3f4c",
                             TwoFactorEnabled = false,
                             UserName = "admin@localhost.com"
                         });
@@ -536,6 +545,12 @@ namespace PetAdoptionManagement.Migrations
 
             modelBuilder.Entity("PetAdoptionManagement.Components.Domain.Review", b =>
                 {
+                    b.HasOne("PetAdoptionManagement.Components.Domain.Application", "Application")
+                        .WithOne("Review")
+                        .HasForeignKey("PetAdoptionManagement.Components.Domain.Review", "ApplicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("PetAdoptionManagement.Components.Domain.Pet", "Pet")
                         .WithMany()
                         .HasForeignKey("PetId")
@@ -547,6 +562,8 @@ namespace PetAdoptionManagement.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Application");
 
                     b.Navigation("Pet");
 
@@ -562,6 +579,11 @@ namespace PetAdoptionManagement.Migrations
                         .IsRequired();
 
                     b.Navigation("Pet");
+                });
+
+            modelBuilder.Entity("PetAdoptionManagement.Components.Domain.Application", b =>
+                {
+                    b.Navigation("Review");
                 });
 
             modelBuilder.Entity("PetAdoptionManagement.Components.Domain.Pet", b =>

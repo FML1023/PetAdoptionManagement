@@ -138,28 +138,28 @@
             if (pets.Any())
             {
                 warningMessage = "You cannot delete your account because you have active pet listings. Please contact an admin.";
-                Console.WriteLine(warningMessage); // ✅ Log message in console
-                StateHasChanged(); // ✅ Force UI to refresh
+                Console.WriteLine(warningMessage); //  Log message in console
+                StateHasChanged(); // Force UI to refresh
                 return;
             }
 
             using var transaction = await context.Database.BeginTransactionAsync();
 
-            // Step 3: Delete the user from the custom User table
+            // Delete the user from the custom User table
             context.User.Remove(user);
             await context.SaveChangesAsync();
 
-            // Step 4: Delete the user from AspNetUsers
+            //  Delete the user from AspNetUsers
             var identityUser = await UserManager.FindByEmailAsync(user.Email);
             if (identityUser != null)
             {
                 await UserManager.DeleteAsync(identityUser);
             }
 
-            // Step 5: Commit the transaction
+            // Commit the transaction
             await transaction.CommitAsync();
 
-            // Step 6: Redirect the user appropriately
+            // Redirect the user appropriately
             var loggedInUserEmail = (await AuthenticationStateProvider.GetAuthenticationStateAsync()).User.Identity?.Name;
             if (user.Email == loggedInUserEmail)
             {
@@ -179,7 +179,7 @@
         {
             Console.WriteLine($"Error deleting user: {ex.Message}");
             warningMessage = "You cannot delete your account because you have active pet listings. Please contact an admin.";
-            StateHasChanged(); // ✅ Ensure UI updates even if an error occurs
+            StateHasChanged(); // Ensure UI updates even if an error occurs
         }
     }
 

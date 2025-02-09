@@ -1,0 +1,93 @@
+﻿@page "/reviews/details"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using PetAdoptionManagement.Components.Domain
+@inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Review Details</PageTitle>
+
+<div class="container-fluid p-0" style="font-family: 'Poppins', sans-serif;
+            background: #FFD194;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 0;">
+    <div class="container" style="max-width: 600px; width: 100%;">
+        <div class="card shadow-sm" style="border-radius: 15px; background: #fff8e1; padding: 2rem;">
+            <h1 class="mb-4 text-center" style="color: #D1913C;">Review Details</h1>
+
+            @if (review is null)
+            {
+                <p class="text-center"><em>Loading...</em></p>
+            }
+            else
+            {
+                <dl class="row text-center">
+                    <dt class="col-sm-4">Review:</dt>
+                    <dd class="col-sm-8">@review.ReviewText</dd>
+
+                    <dt class="col-sm-4">Created At:</dt>
+                    <dd class="col-sm-8">@review.CreatedAt.ToString("yyyy-MM-dd HH:mm")</dd>
+
+                    <dt class="col-sm-4">User:</dt>
+                    <dd class="col-sm-8">@review.User?.Email</dd>
+
+                    <dt class="col-sm-4">Pet:</dt>
+                    <dd class="col-sm-8">@review.Pet?.Name (@review.Pet?.Species)</dd>
+                </dl>
+
+                <div class="text-center mt-4">
+                    @if (IsOwnerOrAdmin)
+                    {
+                        <a href="@($"/reviews/edit?id={review.Id}")" class="btn btn-warning px-4 py-2" style="border-radius: 25px;">Edit</a>
+                    }
+                    <a href="/reviews" class="btn btn-outline-secondary px-4 py-2 ms-2" style="border-radius: 25px;">Back to List</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private Review? review;
+    private bool IsOwnerOrAdmin = false;
+
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated != true)
+        {
+            Console.WriteLine("User is not authenticated. Redirecting...");
+            NavigationManager.NavigateTo("/Account/Login");
+            return;
+        }
+
+        using var context = await DbFactory.CreateDbContextAsync();
+        review = await context.Review
+            .Include(r => r.User)
+            .Include(r => r.Pet)
+            .FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (review is null)
+        {
+            Console.WriteLine("Review not found. Redirecting...");
+            NavigationManager.NavigateTo("/notfound");
+            return;
+        }
+
+        // Check if the user is the owner or an admin
+        var userId = user.FindFirst("sub")?.Value;
+        var isAdmin = user.IsInRole("Administrator");
+
+        IsOwnerOrAdmin = isAdmin || (userId == review.UserId);
+        StateHasChanged();
+    }
+}

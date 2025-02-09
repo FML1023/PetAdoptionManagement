@@ -13,7 +13,6 @@ namespace PetAdoptionManagement.Components.Domain
         public string LivingSituation { get; set; } = string.Empty;
         public string OtherPets { get; set; } = string.Empty;
         public string PetExperience { get; set; } = string.Empty;
-
         public virtual PetAdoptionManagementUser? User { get; set; }
         public virtual Pet? Pet { get; set; }
     }

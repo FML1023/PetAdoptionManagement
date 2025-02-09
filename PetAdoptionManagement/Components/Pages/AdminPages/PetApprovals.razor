@@ -27,7 +27,7 @@
             <div class="d-flex justify-content-center mb-4">
                 <a href="/users" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 25px; margin-right: 10px;">All Users</a>
                 <a href="/admin/petApprovals" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 25px; margin-right: 10px;">All Pet Listings</a>
-                <a href="/admin/applicationApprovals" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 25px;">All Applications</a>
+                <a href="/application" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 25px;">All Applications</a>
             </div>
 
             <!-- Pending Pets -->
@@ -198,7 +198,7 @@
         isLoading = true;
         using var context = await DbFactory.CreateDbContextAsync();
 
-        // ✅ Include user details when fetching pets
+        // Include user details when fetching pets
         pendingPets = await context.Pet
             .Include(p => p.User)
             .Where(p => p.ReviewStatus == ReviewStatusEnum.Pending)
@@ -215,7 +215,7 @@
             .ToListAsync();
 
         isLoading = false;
-        StateHasChanged(); // ✅ Force UI refresh
+        StateHasChanged(); // Force UI refresh
     }
 
     private async Task ApprovePet(int petId)
@@ -225,7 +225,7 @@
         if (pet != null)
         {
             pet.ReviewStatus = ReviewStatusEnum.Approved;
-            pet.Status = true; // ✅ Make it visible to users
+            pet.Status = true; // Make it visible to users
             await context.SaveChangesAsync();
         }
         await LoadPetsAsync();
@@ -238,7 +238,7 @@
         if (pet != null)
         {
             pet.ReviewStatus = ReviewStatusEnum.Rejected;
-            pet.Status = false; // ✅ Hide from users
+            pet.Status = false; // Hide from users
             await context.SaveChangesAsync();
         }
         await LoadPetsAsync();
@@ -250,7 +250,7 @@
         var pet = await context.Pet.FindAsync(petId);
         if (pet != null)
         {
-            pet.ReviewStatus = ReviewStatusEnum.Pending; // ✅ Move back to pending
+            pet.ReviewStatus = ReviewStatusEnum.Pending; // Move back to pending
             await context.SaveChangesAsync();
         }
         await LoadPetsAsync();

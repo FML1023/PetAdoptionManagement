@@ -80,11 +80,16 @@
                                         @(!string.IsNullOrWhiteSpace(application.PetExperience) ? application.PetExperience : "N/A")
                                     </p>
                                 </div>
-                                <div class="card-footer bg-light d-flex justify-content-between" style="padding: 1rem;">
-                                    <a href="@($"/pets/details?id={application.PetID}")" class="btn btn-primary btn-lg" style="border-radius: 25px;">View Pet Details</a>
-                                    <a href="@($"/application/edit?id={application.Id}")" class="btn btn-warning btn-lg" style="border-radius: 25px;">Edit</a>
-                                    <a href="@($"/application/delete?id={application.Id}")" class="btn btn-danger btn-lg" style="border-radius: 25px;">Delete</a>
+                                <div class="card-footer bg-light d-flex flex-wrap justify-content-between align-items-center" style="padding: 1rem; gap: 10px;">
+                                    <a href="@($"/pets/details?id={application.PetID}")" class="btn btn-primary btn-lg flex-grow-1" style="border-radius: 25px; min-width: 150px;">View Pet Details</a>
+                                    <a href="@($"/application/edit?id={application.Id}")" class="btn btn-warning btn-lg flex-grow-1" style="border-radius: 25px; min-width: 150px;">Edit</a>
+                                    <a href="@($"/application/delete?id={application.Id}")" class="btn btn-danger btn-lg flex-grow-1" style="border-radius: 25px; min-width: 150px;">Delete</a>
+                                    @if (application.ReviewStatus == ReviewStatusEnum.Approved)
+                                    {
+                                        <a href="@($"/reviews/create?id={application.PetID}")" class="btn btn-success btn-lg flex-grow-1" style="border-radius: 25px; min-width: 150px;">Create a Review</a>
+                                    }
                                 </div>
+
                             </div>
                         </div>
                     }

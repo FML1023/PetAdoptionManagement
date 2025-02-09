@@ -37,7 +37,7 @@
                 <ul class="navbar-nav">
                     <li class="nav-item"><a class="nav-link" href="/pets">Pets</a></li>
                     <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/contact">Contact</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/reviews">Reviews</a></li>
                     <AuthorizeView Roles="Administrator">
                         <li class="nav-item"><a class="nav-link" href="/admin/petApprovals">Admin Panel</a></li>
                     </AuthorizeView>
@@ -74,77 +74,6 @@
     <!-- Pet Showcase Section -->
     <div class="container mt-5" style="overflow-x: hidden;">
         <h2 class="text-center mb-4" style="color: #333;">Take A Look At Some Of Our Pets</h2>
-
-        <!-- Pet Cards -->
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
-            @* Card 1 *@
-            <div class="col">
-                <div class="card shadow-sm h-100" style="border-radius: 15px; overflow: hidden;">
-                    <img src="orangecat.jpg" class="card-img-top" alt="Orange Cat" style="height: 200px; object-fit: cover;" />
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title text-center" style="color: #D1913C;">MO231 - Orange Cat</h5>
-                        <p class="card-text">
-                            <strong>Gene:</strong> Male<br />
-                            <strong>Age:</strong> 3 years old
-                        </p>
-                        <div class="mt-auto">
-                            <strong class="text-muted">S$10,000</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            @* Card 2 *@
-            <div class="col">
-                <div class="card shadow-sm h-100" style="border-radius: 15px; overflow: hidden;">
-                    <img src="whitepomeranian.jpg" class="card-img-top" alt="White Pomeranian" style="height: 200px; object-fit: cover;" />
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title text-center" style="color: #D1913C;">MO502 - White Pomeranian</h5>
-                        <p class="card-text">
-                            <strong>Gene:</strong> Female<br />
-                            <strong>Age:</strong> 2 months
-                        </p>
-                        <div class="mt-auto">
-                            <strong class="text-muted">S$8,000</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            @* Card 3 *@
-            <div class="col">
-                <div class="card shadow-sm h-100" style="border-radius: 15px; overflow: hidden;">
-                    <img src="bunnysideeye.jpg" class="card-img-top" alt="Bunny" style="height: 200px; object-fit: cover;" />
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title text-center" style="color: #D1913C;">MO102 - Orange Bunny</h5>
-                        <p class="card-text">
-                            <strong>Gene:</strong> Male<br />
-                            <strong>Age:</strong> 2 months
-                        </p>
-                        <div class="mt-auto">
-                            <strong class="text-muted">S$500</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            @* Card 4 *@
-            <div class="col">
-                <div class="card shadow-sm h-100" style="border-radius: 15px; overflow: hidden;">
-                    <img src="bird.jpg" class="card-img-top" alt="Bird" style="height: 200px; object-fit: cover;" />
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title text-center" style="color: #D1913C;">MO512 - Bird</h5>
-                        <p class="card-text">
-                            <strong>Gene:</strong> Male<br />
-                            <strong>Age:</strong> 2 months
-                        </p>
-                        <div class="mt-auto">
-                            <strong class="text-muted">S$200</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- View More Button -->
         <div class="text-center mt-4">

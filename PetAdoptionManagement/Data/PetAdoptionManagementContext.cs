@@ -34,12 +34,13 @@ namespace PetAdoptionManagement.Data
                 .HasForeignKey(p => p.UserId)
                 .OnDelete(DeleteBehavior.NoAction); // Prevent multiple cascade paths
 
-            // One-to-Many: Application and User
+            // One-to-Many: A User can have multiple Applications
             builder.Entity<Application>()
                 .HasOne(a => a.User)
                 .WithMany()
                 .HasForeignKey(a => a.UserId)
-                .OnDelete(DeleteBehavior.Cascade); // Cascade delete when a User is deleted
+                .OnDelete(DeleteBehavior.Cascade);  // When a User is deleted, all their Applications are deleted
+
 
             // One-to-One: Pet and Spotlight
             builder.Entity<Spotlight>()
@@ -47,7 +48,29 @@ namespace PetAdoptionManagement.Data
                 .WithOne(p => p.Spotlight)        // Each Pet has one Spotlight
                 .HasForeignKey<Spotlight>(s => s.PetId) // Spotlight holds the foreign key
                 .OnDelete(DeleteBehavior.Cascade); // Cascade delete when a Pet is deleted
+
+            builder.Entity<Review>(entity =>
+            {
+                // Set the primary key
+                entity.HasKey(r => r.Id);
+
+                // Configure the required relationships
+                entity.HasOne(r => r.User)
+                      .WithMany() // Assuming a user can have many reviews
+                      .HasForeignKey(r => r.UserId)
+                      .OnDelete(DeleteBehavior.Cascade); // Delete reviews if the user is deleted
+
+                entity.HasOne(r => r.Pet)
+                      .WithMany() // Assuming a pet can have many reviews
+                      .HasForeignKey(r => r.PetId)
+                      .OnDelete(DeleteBehavior.Cascade); // Delete reviews if the pet is deleted
+
+                // Configure default value for CreatedAt
+                entity.Property(r => r.CreatedAt)
+                      .HasDefaultValueSql("GETDATE()"); // Use SQL Server's GETDATE function for default
+            });
         }
+        public DbSet<PetAdoptionManagement.Components.Domain.Review> Review { get; set; } = default!;
     }
 }
 

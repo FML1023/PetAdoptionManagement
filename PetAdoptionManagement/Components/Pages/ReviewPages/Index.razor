@@ -1,0 +1,91 @@
+﻿@page "/reviews"
+@using Microsoft.EntityFrameworkCore
+@using PetAdoptionManagement.Components.Domain
+@using PetAdoptionManagement.Data
+@using Microsoft.AspNetCore.Components.Authorization
+@implements IAsyncDisposable
+@inject IDbContextFactory<PetAdoptionManagementContext> DbFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Pet Reviews</PageTitle>
+
+<div class="container mt-5" style="font-family: 'Poppins', sans-serif; background: #fff8e1; padding: 2rem; border-radius: 15px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+    <!-- Back to Menu Button -->
+    <a class="btn btn-outline-primary mb-4" href="/" style="border-radius: 25px;">Back to Home</a>
+
+    <!-- Page Title -->
+    <h1 class="mb-3" style="color: #D1913C;">Pet Reviews</h1>
+    <p class="text-muted">Check out what users have to say about their pets.</p>
+
+    @if (reviews != null && reviews.Any())
+    {
+        <!-- Review Cards Section -->
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+            @foreach (var review in reviews)
+            {
+                <div class="col">
+                    <div class="card shadow-sm" style="border-radius: 15px; background: #fff;">
+                        <!-- Pet Image -->
+                        <img src="@(review.Pet?.PhotoPath ?? "placeholder.jpg")" alt="Pet Photo" class="card-img-top"
+                             style="height: 200px; object-fit: cover; border-top-left-radius: 15px; border-top-right-radius: 15px;" />
+
+                        <div class="card-body">
+                            <h5 class="card-title" style="color: #D1913C;">Review for: @review.Pet?.Name</h5>
+                            <p class="card-text"><strong>Review Text:</strong> @review.ReviewText</p>
+                            <p class="card-text"><strong>Created At:</strong> @review.CreatedAt.ToString("yyyy-MM-dd")</p>
+                            <p class="card-text"><strong>Reviewer:</strong> @(review.User?.Email ?? "Anonymous")</p>
+
+                            <!-- Buttons -->
+                            <div class="d-flex justify-content-between">
+                                <a href="@($"reviews/details?id={review.Id}")" class="btn btn-outline-primary btn-sm" style="border-radius: 25px;">Details</a>
+                                @if (IsUser)
+                                {
+                                    <a href="@($"reviews/edit?id={review.Id}")" class="btn btn-success btn-sm" style="border-radius: 25px;">Edit</a>
+                                }
+                                @if (IsAdmin)
+                                {
+                                    <a href="@($"reviews/delete?id={review.Id}")" class="btn btn-danger btn-sm" style="border-radius: 25px;">Delete</a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="text-center mt-4">
+            <p class="text-muted">No reviews available. Click "Create New Review" to add one.</p>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Review> reviews = new();
+    private bool IsAdmin = false;
+    private bool IsUser = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        // Check if the user is authenticated and has the "Administrator" or "User" role
+        IsAdmin = user.Identity != null && user.Identity.IsAuthenticated && user.IsInRole("Administrator");
+        IsUser = user.Identity != null && user.Identity.IsAuthenticated;
+
+        using var context = DbFactory.CreateDbContext();
+
+        // Fetch reviews
+        reviews = await context.Review
+            .Include(r => r.Pet)
+            .Include(r => r.User)
+            .ToListAsync();
+    }
+
+    private PetAdoptionManagementContext context = default!;
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

@@ -97,14 +97,14 @@
     protected override async Task OnInitializedAsync()
     {
 
-        // ✅ Get Authentication State
+        // Get Authentication State
         var authState = await AuthProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-        isUserLoggedIn = user.Identity?.IsAuthenticated ?? false; // ✅ Check if user is logged in
+        isUserLoggedIn = user.Identity?.IsAuthenticated ?? false; // Check if user is logged in
 
         using var context = DbFactory.CreateDbContext();
 
-        // ✅ Fetch pet details & include the owner info
+        // Fetch pet details & include the owner info
         pet = await context.Pet
             .Include(p => p.User)
             .FirstOrDefaultAsync(m => m.Id == Id);

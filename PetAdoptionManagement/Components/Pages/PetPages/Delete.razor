@@ -121,7 +121,7 @@ else
             NavigationManager.NavigateTo("notfound");
         }
 
-        // ✅ Get and store the CSRF token
+        // Get and store the CSRF token
         var token = Antiforgery.GetAndStoreTokens(HttpContextAccessor.HttpContext)?.RequestToken;
         XsrfToken = token ?? "";
     }

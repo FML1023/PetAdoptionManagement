@@ -1,0 +1,148 @@
+﻿@page "/reviews/create"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using PetAdoptionManagement.Components.Domain
+@inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<PetAdoptionManagementUser> UserManager
+
+<PageTitle>Leave a Review</PageTitle>
+
+<div class="container-fluid p-0" style="font-family: 'Poppins', sans-serif;
+            background: #FFD194;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 0;">
+    <div class="container" style="max-width: 600px; width: 100%;">
+        <div class="card shadow-sm" style="border-radius: 15px; background: #fff8e1; padding: 2rem;">
+            <h1 class="mb-4" style="color: #D1913C;">Leave a Review</h1>
+
+            @if (isLoading)
+            {
+                <p>Loading...</p>
+            }
+            else if (showSuccessMessage)
+            {
+                <div class="alert alert-success mt-3 text-center" style="border-radius: 15px; padding: 1rem;">
+                    🎉 Review submitted successfully! Redirecting...
+                </div>
+            }
+            else if (Review != null)
+            {
+                <EditForm Model="@Review" OnValidSubmit="SubmitReview">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" />
+
+                    <!-- Pet Name (Read-Only) -->
+                    <div class="mb-3">
+                        <label for="petName" class="form-label">Pet Name:</label>
+                        <p class="form-control-plaintext">@Pet?.Name</p>
+                    </div>
+
+                    <!-- Review Text -->
+                    <div class="mb-3">
+                        <label for="reviewText" class="form-label">Your Review:</label>
+                        <InputTextArea id="reviewText" @bind-Value="Review.ReviewText" class="form-control" placeholder="Write your experience with this pet" />
+                        <ValidationMessage For="() => Review.ReviewText" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; border-radius: 25px;">Submit Review</button>
+                </EditForm>
+            }
+
+            <div class="text-center mt-4">
+                <a href="/reviews" class="btn btn-outline-secondary" style="border-radius: 25px;">Back to Reviews</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+    private Pet? Pet;
+    private Review Review { get; set; } = new();
+    private bool isLoading = true;
+    private bool showSuccessMessage = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        Pet = await context.Pet.FirstOrDefaultAsync(p => p.Id == Id);
+
+        if (Pet == null)
+        {
+            Console.WriteLine("Pet not found. Redirecting...");
+            NavigationManager.NavigateTo("/notfound");
+            return;
+        }
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var appUser = await UserManager.GetUserAsync(user);
+            if (appUser != null)
+            {
+                Review = new Review
+                    {
+                        UserId = appUser.Id.Trim(),
+                        PetId = Pet.Id,
+                        CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,
+                            TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time")),
+                        ReviewText = string.Empty
+                    };
+
+                Console.WriteLine($"Review Initialized: UserID: {Review.UserId}, PetID: {Review.PetId}");
+            }
+            else
+            {
+                Console.WriteLine("User is authenticated but AppUser is NULL.");
+            }
+        }
+        else
+        {
+            Console.WriteLine("User is not authenticated.");
+            NavigationManager.NavigateTo("/Account/Login");
+        }
+
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task SubmitReview()
+    {
+        if (string.IsNullOrEmpty(Review.UserId))
+        {
+            Console.WriteLine("User is not authenticated or UserId not found.");
+            NavigationManager.NavigateTo("/reviews");
+            return;
+        }
+
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        Review.CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,
+                            TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time"));
+
+        try
+        {
+            context.Review.Add(Review);
+            await context.SaveChangesAsync();
+            Console.WriteLine("Review successfully submitted!");
+
+            showSuccessMessage = true;
+            StateHasChanged();
+
+            await Task.Delay(2000); // Wait for 2 seconds before redirecting
+            NavigationManager.NavigateTo("/reviews");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving review: {ex.Message}");
+        }
+    }
+}

@@ -1,38 +1,244 @@
 ﻿@page "/application"
+@rendermode InteractiveServer
 @using Microsoft.EntityFrameworkCore
-@using Microsoft.AspNetCore.Components.QuickGrid
 @using PetAdoptionManagement.Components.Domain
 @using PetAdoptionManagement.Data
-@implements IAsyncDisposable
-@inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+@inject AuthenticationStateProvider AuthProvider
+@inject IDbContextFactory<PetAdoptionManagementContext> DbFactory
+@inject NavigationManager Navigation
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Admin - Application Approvals</PageTitle>
 
-<h1>Index</h1>
+<div class="container-fluid p-0" style="font-family: 'Poppins', sans-serif; background: #FFD194; min-height: 100vh; display: flex; flex-direction: column; align-items: center;">
+    <div class="container my-5" style="background: #fff8e1; border-radius: 15px; padding: 2rem; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+        <h2 class="text-center" style="color: #D1913C;">Admin Panel - Manage Applications</h2>
+        <hr />
 
-<p>
-    <a href="applications/create">Create New</a>
-</p>
+        @if (isLoading)
+        {
+            <p class="text-center"><em>Loading applications...</em></p>
+        }
+        else if (!isAuthorized)
+        {
+            <p class="text-danger text-center">You are not authorized to view this page.</p>
+        }
+        else
+        {
 
-<QuickGrid Class="table" Items="context.Application">
-    <PropertyColumn Property="application => application.DateCreated" />
-    <PropertyColumn Property="application => application.ReviewStatus" />
-    <PropertyColumn Property="application => application.CreatedBy" />
-    <PropertyColumn Property="application => application.PetID" />
-    <PropertyColumn Property="application => application.UserId" />
-    <PropertyColumn Property="application => application.ReasonForAdoption" />
-    <PropertyColumn Property="application => application.LivingSituation" />
-    <PropertyColumn Property="application => application.OtherPets" />
-    <PropertyColumn Property="application => application.PetExperience" />
-</QuickGrid>
+            <div class="d-flex justify-content-center mb-4">
+                <a href="/users" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 25px; margin-right: 10px;">All Users</a>
+                <a href="/admin/petApprovals" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 25px; margin-right: 10px;">All Pet Listings</a>
+                <a href="/application" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 25px;">All Applications</a>
+            </div>
+
+            <!-- Pending Applications -->
+            <div class="card shadow-sm mb-4" style="border-radius: 15px;">
+                <div class="card-header bg-warning text-white" style="border-radius: 15px 15px 0 0;">
+                    <h4>Pending Applications</h4>
+                </div>
+                <div class="card-body">
+                    @if (pendingApplications.Any())
+                    {
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Pet Name</th>
+                                    <th>Applicant</th>
+                                    <th>Reason for Adoption</th>
+                                    <th>Living Situation</th>
+                                    <th>Other Pets</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var application in pendingApplications)
+                                {
+                                    <tr>
+                                        <td>@application.Pet?.Name</td>
+                                        <td>@application.CreatedBy</td>
+                                        <td>@application.ReasonForAdoption</td>
+                                        <td>@application.LivingSituation</td>
+                                        <td>@application.OtherPets</td>
+                                        <td>
+                                            <button class="btn btn-success btn-sm mx-1" style="border-radius: 25px;" @onclick="() => ApproveApplication(application.Id)">Approve</button>
+                                            <button class="btn btn-danger btn-sm mx-1" style="border-radius: 25px;" @onclick="() => RejectApplication(application.Id)">Reject</button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-center text-muted">No pending applications.</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Approved Applications -->
+            <div class="card shadow-sm mb-4" style="border-radius: 15px;">
+                <div class="card-header bg-success text-white" style="border-radius: 15px 15px 0 0;">
+                    <h4>Approved Applications</h4>
+                </div>
+                <div class="card-body">
+                    @if (approvedApplications.Any())
+                    {
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Pet Name</th>
+                                    <th>Applicant</th>
+                                    <th>Reason for Adoption</th>
+                                    <th>Living Situation</th>
+                                    <th>Other Pets</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var application in approvedApplications)
+                                {
+                                    <tr>
+                                        <td>@application.Pet?.Name</td>
+                                        <td>@application.CreatedBy</td>
+                                        <td>@application.ReasonForAdoption</td>
+                                        <td>@application.LivingSituation</td>
+                                        <td>@application.OtherPets</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-center text-muted">No approved applications.</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Rejected Applications -->
+            <div class="card shadow-sm" style="border-radius: 15px;">
+                <div class="card-header bg-danger text-white" style="border-radius: 15px 15px 0 0;">
+                    <h4>Rejected Applications</h4>
+                </div>
+                <div class="card-body">
+                    @if (rejectedApplications.Any())
+                    {
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Pet Name</th>
+                                    <th>Applicant</th>
+                                    <th>Reason for Adoption</th>
+                                    <th>Living Situation</th>
+                                    <th>Other Pets</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var application in rejectedApplications)
+                                {
+                                    <tr>
+                                        <td>@application.Pet?.Name</td>
+                                        <td>@application.CreatedBy</td>
+                                        <td>@application.ReasonForAdoption</td>
+                                        <td>@application.LivingSituation</td>
+                                        <td>@application.OtherPets</td>
+                                        <td>
+                                            <button class="btn btn-warning btn-sm mx-1" style="border-radius: 25px;" @onclick="() => ReconsiderApplication(application.Id)">Reconsider</button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-center text-muted">No rejected applications.</p>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
 
 @code {
-    private PetAdoptionManagementContext context = default!;
+    private List<Application> pendingApplications = new();
+    private List<Application> approvedApplications = new();
+    private List<Application> rejectedApplications = new();
+    private bool isLoading = true;
+    private bool isAuthorized = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        context = DbFactory.CreateDbContext();
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity is null || !user.Identity.IsAuthenticated || !user.IsInRole("Administrator"))
+        {
+            Navigation.NavigateTo("/Account/Login", forceLoad: true);
+            return;
+        }
+
+        isAuthorized = true;
+        await LoadApplicationsAsync();
     }
 
-    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+    private async Task LoadApplicationsAsync()
+    {
+        isLoading = true;
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        pendingApplications = await context.Application
+            .Include(a => a.Pet)
+            .Where(a => a.ReviewStatus == ReviewStatusEnum.Pending)
+            .ToListAsync();
+
+        approvedApplications = await context.Application
+            .Include(a => a.Pet)
+            .Where(a => a.ReviewStatus == ReviewStatusEnum.Approved)
+            .ToListAsync();
+
+        rejectedApplications = await context.Application
+            .Include(a => a.Pet)
+            .Where(a => a.ReviewStatus == ReviewStatusEnum.Rejected)
+            .ToListAsync();
+
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task ApproveApplication(int applicationId)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var application = await context.Application.FindAsync(applicationId);
+        if (application != null)
+        {
+            application.ReviewStatus = ReviewStatusEnum.Approved;
+            await context.SaveChangesAsync();
+        }
+        await LoadApplicationsAsync();
+    }
+
+    private async Task RejectApplication(int applicationId)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var application = await context.Application.FindAsync(applicationId);
+        if (application != null)
+        {
+            application.ReviewStatus = ReviewStatusEnum.Rejected;
+            await context.SaveChangesAsync();
+        }
+        await LoadApplicationsAsync();
+    }
+
+    private async Task ReconsiderApplication(int applicationId)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var application = await context.Application.FindAsync(applicationId);
+        if (application != null)
+        {
+            application.ReviewStatus = ReviewStatusEnum.Pending;
+            await context.SaveChangesAsync();
+        }
+        await LoadApplicationsAsync();
+    }
 }
