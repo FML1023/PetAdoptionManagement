@@ -3,13 +3,13 @@ html, body {
 }
 
 a, .btn-link {
-    color: #006bb7;
+    color: #FFD1DC;
 }
 
 .btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+    color: #ff8fab;
+    background-color: #FFD1DC;
+    border-color: #ff8fab;
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
@@ -49,3 +49,76 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+
+/* Sliding Menu */
+.menu-panel {
+    position: fixed;
+    top: 0;
+    right: -300px; /* Hidden by default */
+    width: 300px;
+    height: 100%;
+    background: linear-gradient(to bottom, #4a148c, #7b1fa2);
+    color: white;
+    overflow-y: auto;
+    transition: right 0.3s ease-in-out; /* Smooth slide-in animation */
+    z-index: 1050;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+}
+
+    .menu-panel h4 {
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .menu-panel .list-group-item {
+        background: transparent;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+
+        .menu-panel .list-group-item:hover {
+            background: rgba(255, 255, 255, 0.1); /* Highlight on hover */
+        }
+
+/* Menu Overlay */
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+    z-index: 1040;
+    display: none;
+}
+
+/* Make NavLinks White */
+.nav-link {
+    color: white !important;
+    text-decoration: none;
+}
+
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+.card-title {
+    color: #6a11cb;
+    font-weight: bold;
+}
+
+.btn-outline-primary {
+    border-color: #6a11cb;
+    color: #6a11cb;
+}
+
+    .btn-outline-primary:hover {
+        background-color: #6a11cb;
+        color: white;
+    }

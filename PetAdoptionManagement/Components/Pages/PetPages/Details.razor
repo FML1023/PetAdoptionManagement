@@ -3,54 +3,112 @@
 @using PetAdoptionManagement.Components.Domain
 @inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthProvider
 
-<PageTitle>Details</PageTitle>
+<PageTitle>Pet Details</PageTitle>
 
-<h1>Details</h1>
+<div class="container-fluid p-0" style="font-family: 'Poppins', sans-serif; background: linear-gradient(to bottom, #FFD194, #D1913C); min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+    <div class="container mt-5" style="background: #fff8e1; border-radius: 15px; padding: 2rem; max-width: 1000px; width: 100%; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+        <h1 class="text-center mb-4" style="color: #D1913C;">🐾 Pet Details</h1>
+        <hr />
 
-<div>
-    <h2>Pet</h2>
-    <hr />
-    @if (pet is null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else {
-        <dl class="row">
-            <dt class="col-sm-2">Name</dt>
-            <dd class="col-sm-10">@pet.Name</dd>
-            <dt class="col-sm-2">Species</dt>
-            <dd class="col-sm-10">@pet.Species</dd>
-            <dt class="col-sm-2">Breed</dt>
-            <dd class="col-sm-10">@pet.Breed</dd>
-            <dt class="col-sm-2">Age</dt>
-            <dd class="col-sm-10">@pet.Age</dd>
-            <dt class="col-sm-2">Description</dt>
-            <dd class="col-sm-10">@pet.Description</dd>
-            <dt class="col-sm-2">Photos</dt>
-            <dd class="col-sm-10">@pet.Photos</dd>
-            <dt class="col-sm-2">Status</dt>
-            <dd class="col-sm-10">@pet.Status</dd>
-            <dt class="col-sm-2">SpotlightId</dt>
-            <dd class="col-sm-10">@pet.SpotlightId</dd>
-        </dl>
-        <div>
-            <a href="@($"/pets/edit?id={pet.Id}")">Edit</a> |
-            <a href="@($"/pets")">Back to List</a>
-        </div>
-    }
+        @if (pet is null)
+        {
+            <p class="text-center"><em>Loading...</em></p>
+        }
+        else
+        {
+            <div class="row align-items-center">
+                <!-- Pet Details (Left Side) -->
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4 fw-bold" style="color: #333;">Name</dt>
+                        <dd class="col-sm-8">@pet.Name</dd>
+
+                        <dt class="col-sm-4 fw-bold" style="color: #333;">Species</dt>
+                        <dd class="col-sm-8">@pet.Species</dd>
+
+                        <dt class="col-sm-4 fw-bold" style="color: #333;">Breed</dt>
+                        <dd class="col-sm-8">@pet.Breed</dd>
+
+                        <dt class="col-sm-4 fw-bold" style="color: #333;">Age</dt>
+                        <dd class="col-sm-8">@pet.Age years</dd>
+
+                        <dt class="col-sm-4 fw-bold" style="color: #333;">Description</dt>
+                        <dd class="col-sm-8">@pet.Description</dd>
+                    </dl>
+
+                    <!-- Owner Information (if logged in) -->
+                    @if (isUserLoggedIn && pet.User is not null)
+                    {
+                        <div class="mt-4 p-3" style="background: #f7e1b5; border-radius: 10px;">
+                            <h5 class="fw-bold text-center" style="color: #D1913C;">Owner Information</h5>
+                            <dl class="row">
+                                <dt class="col-sm-4 fw-bold">Listed By</dt>
+                                <dd class="col-sm-8">@($"{pet.User.FirstName} {pet.User.LastName}")</dd>
+
+                                <dt class="col-sm-4 fw-bold">Email</dt>
+                                <dd class="col-sm-8">@pet.User.Email</dd>
+
+                                <dt class="col-sm-4 fw-bold">Phone</dt>
+                                <dd class="col-sm-8">@pet.User.PhoneNumber</dd>
+                            </dl>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mt-3"><em>Login to see the owner's contact details.</em></p>
+                    }
+
+                    <!-- Buttons -->
+                    <div class="d-flex flex-wrap mt-4">
+                        <a href="/pets" class="btn btn-outline-primary px-4 py-2 me-2" style="border-radius: 25px;">Back to List</a>
+                        @if (isUserLoggedIn && pet.User is not null)
+                        {
+                            <a href="@($"/application/create?id={pet.Id}")" class="btn btn-primary px-4 py-2" style="border-radius: 25px;">Apply to Adopt</a>
+                        }
+                        <AuthorizeView Roles="Administrator">
+                            <a href="@($"/pets/edit?id={pet.Id}")" class="btn btn-warning px-4 py-2 ms-2" style="border-radius: 25px;">Edit</a>
+                            <a href="@($"/pets/delete?id={pet.Id}")" class="btn btn-danger px-4 py-2 ms-2" style="border-radius: 25px;">Delete</a>
+                        </AuthorizeView>
+                    </div>
+                </div>
+
+                <!-- Pet Image (Right Side) -->
+                <div class="col-md-6 d-flex align-items-center justify-content-center">
+                    <div class="shadow-lg p-3 bg-white rounded" style="max-width: 100%; border-radius: 15px;">
+                        <img src="@pet.PhotoPath" alt="Pet Photo" class="img-fluid"
+                             style="max-height: 400px; border-radius: 15px; object-fit: cover; width: 100%;" />
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 </div>
+
+
 
 @code {
     private Pet? pet;
+    private bool isUserLoggedIn = false;
 
     [SupplyParameterFromQuery]
     private int Id { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+
+        // ✅ Get Authentication State
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        isUserLoggedIn = user.Identity?.IsAuthenticated ?? false; // ✅ Check if user is logged in
+
         using var context = DbFactory.CreateDbContext();
-        pet = await context.Pet.FirstOrDefaultAsync(m => m.Id == Id);
+
+        // ✅ Fetch pet details & include the owner info
+        pet = await context.Pet
+            .Include(p => p.User)
+            .FirstOrDefaultAsync(m => m.Id == Id);
 
         if (pet is null)
         {

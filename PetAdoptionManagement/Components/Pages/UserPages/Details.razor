@@ -1,58 +1,93 @@
 ﻿@page "/users/details"
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.EntityFrameworkCore
 @using PetAdoptionManagement.Components.Domain
-@inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+@inject IDbContextFactory<PetAdoptionManagementContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-<PageTitle>Details</PageTitle>
+<PageTitle>User Profile</PageTitle>
 
-<h1>Details</h1>
+<div class="container-fluid p-0" style="font-family: 'Poppins', sans-serif; background: #FFD194; min-height: 100vh;">
+    <div class="container d-flex align-items-center justify-content-center" style="min-height: 90vh;">
+        <div class="card shadow-lg" style="border-radius: 15px; background: #fff8e1; padding: 2rem; max-width: 700px; width: 100%;">
+            <h2 class="text-center mb-4" style="color: #D1913C;">My Profile</h2>
+            <hr style="border: 1px solid #D1913C; margin: 2rem 0;" />
 
-<div>
-    <h2>User</h2>
-    <hr />
-    @if (user is null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else {
-        <dl class="row">
-            <dt class="col-sm-2">Email</dt>
-            <dd class="col-sm-10">@user.Email</dd>
-            <dt class="col-sm-2">Password</dt>
-            <dd class="col-sm-10">@user.Password</dd>
-            <dt class="col-sm-2">Name</dt>
-            <dd class="col-sm-10">@user.Name</dd>
-            <dt class="col-sm-2">Age</dt>
-            <dd class="col-sm-10">@user.Age</dd>
-            <dt class="col-sm-2">Role</dt>
-            <dd class="col-sm-10">@user.Role</dd>
-            <dt class="col-sm-2">Address</dt>
-            <dd class="col-sm-10">@user.Address</dd>
-            <dt class="col-sm-2">PhoneNumber</dt>
-            <dd class="col-sm-10">@user.PhoneNumber</dd>
-        </dl>
-        <div>
-            <a href="@($"/users/edit?id={user.Id}")">Edit</a> |
-            <a href="@($"/users")">Back to List</a>
+            @if (isLoading)
+            {
+                <p class="text-center text-muted"><em>Loading profile...</em></p>
+            }
+            else if (user is null)
+            {
+                <p class="text-center text-danger">User not found.</p>
+                <div class="text-center mt-3">
+                    <a href="/" class="btn btn-secondary">Back to Home</a>
+                </div>
+            }
+            else
+            {
+                <!-- Profile Content -->
+
+                <dl class="row mb-4">
+                    <dt class="col-sm-4 fw-bold text-end">Email:</dt>
+                    <dd class="col-sm-8">@user.Email</dd>
+
+                    <dt class="col-sm-4 fw-bold text-end">Name:</dt>
+                    <dd class="col-sm-8">@user.Name</dd>
+
+                    <dt class="col-sm-4 fw-bold text-end">Age:</dt>
+                    <dd class="col-sm-8">@(user.Age != 0 ? $"{user.Age} years old" : "Not set")</dd>
+
+                    <dt class="col-sm-4 fw-bold text-end">Role:</dt>
+                    <dd class="col-sm-8">@user.Role</dd>
+
+                    <dt class="col-sm-4 fw-bold text-end">Address:</dt>
+                    <dd class="col-sm-8">@(string.IsNullOrEmpty(user.Address) ? "Not set" : user.Address)</dd>
+
+                    <dt class="col-sm-4 fw-bold text-end">Phone Number:</dt>
+                    <dd class="col-sm-8">@(string.IsNullOrEmpty(user.PhoneNumber) ? "Not set" : user.PhoneNumber)</dd>
+                </dl>
+
+                <!-- Buttons -->
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    <a href="/users/edit" class="btn btn-primary px-4 py-2" style="border-radius: 25px;">Edit Profile</a>
+                    <a href="/application/details" class="btn btn-warning px-4 py-2" style="border-radius: 25px;">View Applications</a>
+                    <a href="/users/delete?id=@user.Id" class="btn btn-danger px-4 py-2" style="border-radius: 25px;">Delete</a>
+                    <a href="/" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 25px;">Back to Home</a>
+                </div>
+            }
         </div>
-    }
+    </div>
 </div>
 
 @code {
     private User? user;
-
-    [SupplyParameterFromQuery]
-    private int Id { get; set; }
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        user = await context.User.FirstOrDefaultAsync(m => m.Id == Id);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var currentUser = authState.User;
 
-        if (user is null)
+        if (currentUser.Identity == null || !currentUser.Identity.IsAuthenticated)
         {
-            NavigationManager.NavigateTo("notfound");
+            NavigationManager.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        var email = currentUser.Identity.Name;
+
+        using var context = await DbFactory.CreateDbContextAsync();
+        user = await context.User.FirstOrDefaultAsync(u => u.Email == email);
+
+        if (user == null)
+        {
+            NavigationManager.NavigateTo("/notfound");
+        }
+        else
+        {
+            isLoading = false;
         }
     }
 }

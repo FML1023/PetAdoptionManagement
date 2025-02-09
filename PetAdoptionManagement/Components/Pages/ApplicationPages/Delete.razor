@@ -1,71 +1,138 @@
-﻿@page "/applications/delete"
-@using Microsoft.EntityFrameworkCore
-@using PetAdoptionManagement.Components.Domain
-@inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+﻿@page "/application/delete"
+@rendermode InteractiveServer
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IDbContextFactory<PetAdoptionManagementContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject UserManager<PetAdoptionManagementUser> UserManager
 
-<PageTitle>Delete</PageTitle>
+<PageTitle>Delete Adoption Application</PageTitle>
 
-<h1>Delete</h1>
+<div class="container mt-5" style="font-family: 'Poppins', sans-serif;">
+    <div class="card shadow-sm" style="border-radius: 15px; background: #fff8e1; padding: 2rem; max-width: 800px; margin: 0 auto;">
+        <h1 class="mb-4 text-danger">Delete Adoption Application</h1>
 
-<p>Are you sure you want to delete this?</p>
-<div>
-    <h2>Application</h2>
-    <hr />
-    @if (application is null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else {
-        <dl class="row">
-            <dt class="col-sm-2">DateCreated</dt>
-            <dd class="col-sm-10">@application.DateCreated</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">ReviewStatus</dt>
-            <dd class="col-sm-10">@application.ReviewStatus</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">CreatedBy</dt>
-            <dd class="col-sm-10">@application.CreatedBy</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">PetID</dt>
-            <dd class="col-sm-10">@application.PetID</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">UserID</dt>
-            <dd class="col-sm-10">@application.UserID</dd>
-        </dl>
-        <EditForm method="post" Model="application" OnValidSubmit="DeleteApplication" FormName="delete" Enhance>
-            <button type="submit" class="btn btn-danger" disabled="@(application is null)">Delete</button> |
-            <a href="/applications">Back to List</a>
-        </EditForm>
-    }
+        @if (!isAuthorized)
+        {
+            <p class="text-danger">You are not authorized to delete this application.</p>
+        }
+        else if (Application == null)
+        {
+            <p>Loading application...</p>
+        }
+        else
+        {
+            <p>Are you sure you want to delete your adoption application for <strong>@Pet?.Name</strong>?</p>
+
+            <div class="d-flex justify-content-between mt-4">
+                <button class="btn btn-danger" @onclick="DeleteApplication" style="border-radius: 25px;">
+                    Yes, Delete
+                </button>
+                <a href="/application/details" class="btn btn-secondary" style="border-radius: 25px;">Cancel</a>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger mt-3">
+                @errorMessage
+            </div>
+        }
+
+        @if (showSuccessMessage)
+        {
+            <div class="alert alert-success mt-3">
+                Application deleted successfully! Redirecting...
+            </div>
+        }
+    </div>
 </div>
 
 @code {
-    private Application? application;
-
     [SupplyParameterFromQuery]
-    private int Id { get; set; }
+    public int Id { get; set; }
+    private Pet? Pet;
+    private Application? Application;
+    private bool isAuthorized = false;
+    private string? errorMessage;
+    private bool showSuccessMessage = false;
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        application = await context.Application.FirstOrDefaultAsync(m => m.Id == Id);
+        Console.WriteLine($"Fetching application with Id = {Id}");
 
-        if (application is null)
+        using var context = await DbFactory.CreateDbContextAsync();
+        Application = await context.Application
+            .Include(a => a.Pet)
+            .FirstOrDefaultAsync(a => a.Id == Id);
+
+        if (Application == null)
         {
-            NavigationManager.NavigateTo("notfound");
+            Console.WriteLine("Application not found. Redirecting...");
+            NavigationManager.NavigateTo("/application/details");
+            return;
+        }
+
+        Pet = Application.Pet;
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var appUser = await UserManager.GetUserAsync(user);
+            if (appUser != null && appUser.Id == Application.UserId)
+            {
+                isAuthorized = true;
+                Console.WriteLine("User authorized to delete application.");
+            }
+            else
+            {
+                Console.WriteLine("User is not authorized.");
+                NavigationManager.NavigateTo("/application/details");
+                return;
+            }
+        }
+        else
+        {
+            Console.WriteLine("User is not authenticated.");
+            NavigationManager.NavigateTo("/application/details");
+            return;
         }
     }
 
     private async Task DeleteApplication()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Application.Remove(application!);
-        await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/applications");
+        Console.WriteLine("DeleteApplication method is called.");
+
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            var existingApplication = await context.Application.FirstOrDefaultAsync(a => a.Id == Id);
+
+            if (existingApplication == null)
+            {
+                Console.WriteLine("Application not found.");
+                errorMessage = "Application not found.";
+                return;
+            }
+
+            Console.WriteLine("Application found. Deleting...");
+
+            context.Application.Remove(existingApplication);
+            await context.SaveChangesAsync();
+
+            Console.WriteLine("Application deleted successfully!");
+
+            showSuccessMessage = true;
+            StateHasChanged();
+
+            await Task.Delay(1000);
+            NavigationManager.NavigateTo("/application/details");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error deleting application. Please try again.";
+            Console.WriteLine($"Error deleting application: {ex.Message}");
+        }
     }
 }

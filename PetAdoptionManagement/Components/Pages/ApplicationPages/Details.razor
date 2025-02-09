@@ -1,54 +1,144 @@
-﻿@page "/applications/details"
+﻿@page "/application/details"
 @using Microsoft.EntityFrameworkCore
 @using PetAdoptionManagement.Components.Domain
 @inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-<PageTitle>Details</PageTitle>
+<PageTitle>My Applications</PageTitle>
 
-<h1>Details</h1>
+<div class="container-fluid p-0" style="font-family: 'Poppins', sans-serif; background: #FFD194; min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+    <div class="container d-flex flex-column align-items-center" style="padding: 2rem 0;">
+        <div class="card shadow-lg" style="background: #fff8e1; border-radius: 15px; padding: 2rem; max-width: 900px; width: 100%;">
+            <h1 class="text-center mb-4" style="color: #D1913C;">My Application History</h1>
 
-<div>
-    <h2>Application</h2>
-    <hr />
-    @if (application is null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else {
-        <dl class="row">
-            <dt class="col-sm-2">DateCreated</dt>
-            <dd class="col-sm-10">@application.DateCreated</dd>
-            <dt class="col-sm-2">ReviewStatus</dt>
-            <dd class="col-sm-10">@application.ReviewStatus</dd>
-            <dt class="col-sm-2">CreatedBy</dt>
-            <dd class="col-sm-10">@application.CreatedBy</dd>
-            <dt class="col-sm-2">PetID</dt>
-            <dd class="col-sm-10">@application.PetID</dd>
-            <dt class="col-sm-2">UserID</dt>
-            <dd class="col-sm-10">@application.UserID</dd>
-        </dl>
-        <div>
-            <a href="@($"/applications/edit?id={application.Id}")">Edit</a> |
-            <a href="@($"/applications")">Back to List</a>
+            @if (isLoading)
+            {
+                <p class="text-center text-muted"><em>Loading...</em></p>
+            }
+            else if (userApplications == null || !userApplications.Any())
+            {
+                <p class="text-center text-muted"><em>You have not submitted any applications yet.</em></p>
+                <div class="text-center mt-4">
+                    <a href="/pets" class="btn btn-outline-primary px-4 py-2" style="border-radius: 25px;">View Pets</a>
+                </div>
+            }
+            else
+            {
+                <!-- Applications List -->
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    @foreach (var application in userApplications)
+                    {
+                        <div class="col">
+                            <div class="card shadow-sm h-100" style="background: #fff; border-radius: 15px; overflow: hidden;">
+                                <div class="card-body p-4">
+                                    <h5 class="card-title mb-3" style="color: #D1913C;">
+                                        <strong>Pet Name:</strong> @(!string.IsNullOrWhiteSpace(application.Pet?.Name) ? application.Pet?.Name : "N/A")
+                                    </h5>
+
+                                    <p class="card-text mb-1">
+                                        <strong>Date Created:</strong> @application.DateCreated.ToString("yyyy-MM-dd HH:mm:ss")
+                                    </p>
+
+                                    <p class="card-text mb-1">
+                                        <strong>Created By:</strong> @(!string.IsNullOrWhiteSpace(application.CreatedBy) ? application.CreatedBy : "N/A")
+                                    </p>
+
+                                    <p class="card-text mb-2">
+                                        <strong>Review Status:</strong>
+                                        @if (application.ReviewStatus == ReviewStatusEnum.Pending)
+                                        {
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        }
+                                        else if (application.ReviewStatus == ReviewStatusEnum.Approved)
+                                        {
+                                            <span class="badge bg-success">Approved</span>
+                                        }
+                                        else if (application.ReviewStatus == ReviewStatusEnum.Rejected)
+                                        {
+                                            <span class="badge bg-danger">Rejected</span>
+                                        }
+                                    </p>
+
+                                    <p class="card-text mb-1">
+                                        <strong>Reason for Adoption:</strong>
+                                        @(!string.IsNullOrWhiteSpace(application.ReasonForAdoption) ? application.ReasonForAdoption : "N/A")
+                                    </p>
+
+                                    <p class="card-text mb-1">
+                                        <strong>Living Situation:</strong>
+                                        @(!string.IsNullOrWhiteSpace(application.LivingSituation) ? application.LivingSituation : "N/A")
+                                    </p>
+
+                                    <p class="card-text mb-1">
+                                        <strong>Other Pets:</strong>
+                                        @(!string.IsNullOrWhiteSpace(application.OtherPets) ? application.OtherPets : "N/A")
+                                    </p>
+
+                                    <p class="card-text">
+                                        <strong>Pet Experience:</strong>
+                                        @(!string.IsNullOrWhiteSpace(application.PetExperience) ? application.PetExperience : "N/A")
+                                    </p>
+                                </div>
+                                <div class="card-footer bg-light d-flex justify-content-between" style="padding: 1rem;">
+                                    <a href="@($"/pets/details?id={application.PetID}")" class="btn btn-primary btn-lg" style="border-radius: 25px;">View Pet Details</a>
+                                    <a href="@($"/application/edit?id={application.Id}")" class="btn btn-warning btn-lg" style="border-radius: 25px;">Edit</a>
+                                    <a href="@($"/application/delete?id={application.Id}")" class="btn btn-danger btn-lg" style="border-radius: 25px;">Delete</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            <div class="mt-4 d-flex justify-content-center">
+                <a href="/users/details" class="btn btn-outline-secondary px-5 py-3" style="border-radius: 25px;">Back to Profile</a>
+            </div>
+
         </div>
-    }
+    </div>
 </div>
 
-@code {
-    private Application? application;
 
-    [SupplyParameterFromQuery]
-    private int Id { get; set; }
+
+@code {
+    private List<Application> userApplications = new();
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        application = await context.Application.FirstOrDefaultAsync(m => m.Id == Id);
+        isLoading = true;
 
-        if (application is null)
+        try
         {
-            NavigationManager.NavigateTo("notfound");
+            // Get the authenticated user's email
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var userEmail = user.Identity?.Name; // Get the user's email
+            Console.WriteLine($"User: {userEmail}");
+
+            if (!string.IsNullOrEmpty(userEmail))
+            {
+                using var context = await DbFactory.CreateDbContextAsync();
+
+                // Fetch all applications submitted by the user
+                userApplications = await context.Application
+                    .Include(a => a.Pet)
+                    .Where(a => a.CreatedBy == userEmail)
+                    .ToListAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching applications: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+
+        if (userApplications.Count == 0)
+        {
+            Console.WriteLine("No applications found for this user.");
         }
     }
 }

@@ -7,6 +7,10 @@
 @using Microsoft.AspNetCore.WebUtilities
 @using PetAdoptionManagement.Data
 
+@using Microsoft.EntityFrameworkCore;
+@using PetAdoptionManagement.Data;
+@using PetAdoptionManagement.Components.Domain;
+
 @inject UserManager<PetAdoptionManagementUser> UserManager
 @inject IUserStore<PetAdoptionManagementUser> UserStore
 @inject SignInManager<PetAdoptionManagementUser> SignInManager
@@ -15,55 +19,50 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 @inject RoleManager<IdentityRole> RoleManager
+@inject IDbContextFactory<PetAdoptionManagementContext> DbFactory
+
+
 
 <PageTitle>Register</PageTitle>
 
-<h1>Register</h1>
+<div class="d-flex align-items-center justify-content-center vh-100" style="background-color: #fff8e1; font-family: 'Poppins', sans-serif; position: relative;">
+    <!-- Back to Home Button -->
+    <a class="btn btn-outline-primary" href="/" style="position: absolute; top: 20px; right: 20px; border-radius: 25px;">
+        Back to Home
+    </a>
 
-<div class="row">
-    <div class="col-md-4">
+    <div class="container" style="max-width: 500px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);">
+        <h1 class="text-center mb-4">Register</h1>
         <StatusMessage Message="@Message" />
         <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
             <DataAnnotationsValidator />
-            <h2>Create a new account.</h2>
-            <hr />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label for="email">Email</label>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <InputText @bind-Value="Input.Email" id="email" class="form-control" placeholder="Enter your email" autocomplete="username" />
                 <ValidationMessage For="() => Input.Email" class="text-danger" />
             </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.FirstName" class="form-control"
-                           autocomplete="firstname" aria-required="true" placeholder="Bill" />
-                <label for="email">First Name</label>
+            <div class="mb-3">
+                <label for="firstname" class="form-label">First Name</label>
+                <InputText @bind-Value="Input.FirstName" id="firstname" class="form-control" placeholder="Enter your first name" autocomplete="given-name" />
                 <ValidationMessage For="() => Input.FirstName" class="text-danger" />
             </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.LastName" class="form-control"
-                           autocomplete="lastname" aria-required="true" placeholder="Gates" />
-                <label for="email">Last Name</label>
+            <div class="mb-3">
+                <label for="lastname" class="form-label">Last Name</label>
+                <InputText @bind-Value="Input.LastName" id="lastname" class="form-control" placeholder="Enter your last name" autocomplete="family-name" />
                 <ValidationMessage For="() => Input.LastName" class="text-danger" />
             </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="password">Password</label>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <InputText type="password" @bind-Value="Input.Password" id="password" class="form-control" placeholder="Enter your password" autocomplete="new-password" />
                 <ValidationMessage For="() => Input.Password" class="text-danger" />
             </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="confirm-password">Confirm Password</label>
+            <div class="mb-3">
+                <label for="confirm-password" class="form-label">Confirm Password</label>
+                <InputText type="password" @bind-Value="Input.ConfirmPassword" id="confirm-password" class="form-control" placeholder="Confirm your password" autocomplete="new-password" />
                 <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
+            <button type="submit" class="btn btn-primary w-100">Register</button>
         </EditForm>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            <ExternalLoginPicker />
-        </section>
     </div>
 </div>
 
@@ -89,7 +88,6 @@
         user.FirstName = Input.FirstName;
         user.LastName = Input.LastName;
 
-
         var result = await UserManager.CreateAsync(user, Input.Password);
 
         if (!result.Succeeded)
@@ -98,16 +96,13 @@
             return;
         }
 
-        //create the user role if it doesn't exist
         if (!await RoleManager.RoleExistsAsync("User"))
         {
             await RoleManager.CreateAsync(new IdentityRole("User"));
         }
-        //add the user to the user role
+
         await UserManager.AddToRoleAsync(user, "User");
-        //add the user id as claim when user registers
-        await UserManager.AddClaimAsync(user, new System.Security.Claims.Claim("userId",
-        user.Id));
+        await UserManager.AddClaimAsync(user, new System.Security.Claims.Claim("userId", user.Id));
 
         Logger.LogInformation("User created a new account with password.");
 
@@ -120,15 +115,39 @@
 
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
+        // Automatically sync with User Table after registration
+        await SyncUserToDatabase(user);
+
         if (UserManager.Options.SignIn.RequireConfirmedAccount)
         {
-            RedirectManager.RedirectTo(
-                "Account/RegisterConfirmation",
-                new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
+            RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
         }
 
         await SignInManager.SignInAsync(user, isPersistent: false);
         RedirectManager.RedirectTo(ReturnUrl);
+    }
+
+
+    private async Task SyncUserToDatabase(PetAdoptionManagementUser identityUser)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        // Check if user already exists in User table
+        var existingUser = await context.User.FirstOrDefaultAsync(u => u.Email == identityUser.Email);
+        if (existingUser != null) return;
+
+        var newUser = new User
+            {
+                Email = identityUser.Email,
+                Name = $"{identityUser.FirstName} {identityUser.LastName}".Trim(), 
+                Password = identityUser.PasswordHash,
+                Role = "User",
+                PhoneNumber = null,
+                Address = null,
+            };
+
+        context.User.Add(newUser);
+        await context.SaveChangesAsync();
     }
 
     private PetAdoptionManagementUser CreateUser()
@@ -140,7 +159,7 @@
         catch
         {
             throw new InvalidOperationException($"Can't create an instance of '{nameof(PetAdoptionManagementUser)}'. " +
-                $"Ensure that '{nameof(PetAdoptionManagementUser)}' is not an abstract class and has a parameterless constructor.");
+                                                $"Ensure that '{nameof(PetAdoptionManagementUser)}' is not an abstract class and has a parameterless constructor.");
         }
     }
 
@@ -163,7 +182,7 @@
         [Required]
         [Display(Name = "First Name")]
         public string FirstName { get; set; } = "";
-        
+
         [Required]
         [Display(Name = "Last Name")]
         public string LastName { get; set; } = "";

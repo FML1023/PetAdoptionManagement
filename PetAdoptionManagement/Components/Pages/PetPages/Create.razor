@@ -1,61 +1,54 @@
 ﻿@page "/pets/create"
-@using Microsoft.EntityFrameworkCore
-@using PetAdoptionManagement.Components.Domain
+@rendermode InteractiveServer
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject UserManager<PetAdoptionManagementUser> UserManager
 
-<PageTitle>Create</PageTitle>
 
-<h1>Create</h1>
+<PageTitle>Create Pet</PageTitle>
 
-<h2>Pet</h2>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <EditForm method="post" Model="Pet" OnValidSubmit="AddPet" FormName="create" Enhance>
+<div class="container mt-5" style="font-family: 'Poppins', sans-serif;">
+    <div class="card shadow-sm" style="border-radius: 15px; background: #fff8e1; padding: 2rem; max-width: 800px; margin: 0 auto;">
+        <h1 class="mb-4" style="color: #D1913C;">Create Pet</h1>
+
+        <EditForm method="post" Model="Pet" OnValidSubmit="AddPet" FormName="createPet">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
 
             <!-- Name Field -->
             <div class="mb-3">
                 <label for="name" class="form-label">Name:</label>
-                <InputText id="name" @bind-Value="Pet.Name" class="form-control" />
+                <InputText id="name" @bind-Value="Pet.Name" class="form-control" placeholder="Enter Pet Name" />
                 <ValidationMessage For="() => Pet.Name" class="text-danger" />
             </div>
 
             <!-- Species Field -->
             <div class="mb-3">
                 <label for="species" class="form-label">Species:</label>
-                <InputText id="species" @bind-Value="Pet.Species" class="form-control" />
+                <InputText id="species" @bind-Value="Pet.Species" class="form-control" placeholder="Enter Pet Species" />
                 <ValidationMessage For="() => Pet.Species" class="text-danger" />
             </div>
 
             <!-- Breed Field -->
             <div class="mb-3">
                 <label for="breed" class="form-label">Breed:</label>
-                <InputText id="breed" @bind-Value="Pet.Breed" class="form-control" />
+                <InputText id="breed" @bind-Value="Pet.Breed" class="form-control" placeholder="Enter Pet Breed" />
                 <ValidationMessage For="() => Pet.Breed" class="text-danger" />
             </div>
 
             <!-- Age Field -->
             <div class="mb-3">
                 <label for="age" class="form-label">Age:</label>
-                <InputNumber id="age" @bind-Value="Pet.Age" class="form-control" />
+                <InputNumber id="age" @bind-Value="Pet.Age" class="form-control" placeholder="Enter Pet Age" />
                 <ValidationMessage For="() => Pet.Age" class="text-danger" />
             </div>
 
             <!-- Description Field -->
             <div class="mb-3">
                 <label for="description" class="form-label">Description:</label>
-                <InputText id="description" @bind-Value="Pet.Description" class="form-control" />
+                <InputText id="description" @bind-Value="Pet.Description" class="form-control" placeholder="Enter a brief description" />
                 <ValidationMessage For="() => Pet.Description" class="text-danger" />
-            </div>
-
-            <!-- Photos Field -->
-            <div class="mb-3">
-                <label for="photos" class="form-label">Photos (comma-separated URLs):</label>
-                <InputText id="photos" @bind-Value="PetPhotosString" class="form-control" />
-                <ValidationMessage For="() => PetPhotosString" class="text-danger" />
             </div>
 
             <!-- Status Field -->
@@ -68,35 +61,103 @@
             <!-- SpotlightId Field -->
             <div class="mb-3">
                 <label for="spotlightid" class="form-label">SpotlightId:</label>
-                <InputNumber id="spotlightid" @bind-Value="Pet.SpotlightId" class="form-control" />
+                <InputNumber id="spotlightid" @bind-Value="Pet.SpotlightId" class="form-control" placeholder="Enter Spotlight ID" />
                 <ValidationMessage For="() => Pet.SpotlightId" class="text-danger" />
             </div>
 
-            <button type="submit" class="btn btn-primary">Create</button>
+            <!-- Photos Field -->
+            <div class="mb-3">
+                <label for="photo" class="form-label">Upload Photo</label>
+                <InputFile id="photo" OnChange="HandleFileUpload" />
+                @if (!string.IsNullOrEmpty(PhotoPath))
+                {
+                    <img src="@PhotoPath" alt="Uploaded Photo" style="max-width: 100%; max-height: 200px; margin-top: 1rem;" />
+                }
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; border-radius: 25px;">Create Pet</button>
         </EditForm>
     </div>
-</div>
 
-<div>
-    <a href="/pets">Back to List</a>
+    <div class="text-center mt-4">
+        <a href="/pets" class="btn btn-outline-secondary" style="border-radius: 25px;">Back to List</a>
+    </div>
 </div>
 
 @code {
     [SupplyParameterFromForm]
     private Pet Pet { get; set; } = new Pet();
 
-    // Create a string property to temporarily bind to the input field
-    public string PetPhotosString
+    private string UserId { get; set; }  
+    private string? PhotoPath;
+
+    protected override async Task OnInitializedAsync()
     {
-        get => string.Join(",", Pet.Photos ?? new List<string>());
-        set => Pet.Photos = string.IsNullOrWhiteSpace(value) ? new List<string>() : value.Split(',').Select(p => p.Trim()).ToList();
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user?.Identity?.IsAuthenticated == true)
+        {
+            var appUser = await UserManager.GetUserAsync(user);
+
+            if (!string.IsNullOrEmpty(appUser?.Id))
+            {
+                UserId = appUser.Id.Trim();  // Trim to prevent accidental spaces
+            }
+            else
+            {
+                Console.WriteLine("User Id is not available.");
+            }
+        }
+    }
+
+        private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null && file.ContentType.StartsWith("image/"))
+        {
+            var uploadsFolder = Path.Combine("wwwroot", "uploads");
+            Directory.CreateDirectory(uploadsFolder);
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.Name)}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using var stream = new FileStream(filePath, FileMode.Create);
+            await file.OpenReadStream().CopyToAsync(stream);
+
+            PhotoPath = $"/uploads/{fileName}";
+            Pet.PhotoPath = PhotoPath; // Update Pet's PhotoPath
+        }
     }
 
     private async Task AddPet()
     {
+        if (string.IsNullOrEmpty(UserId))
+        {
+            Console.WriteLine("User is not authenticated or UserId not found.");
+            NavigationManager.NavigateTo("/pets");
+            return;
+        }
+
         using var context = DbFactory.CreateDbContext();
-        context.Pet.Add(Pet);
-        await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/pets");
+
+        // Assign UserId correctly
+        Pet.UserId = UserId;
+
+        Pet.ReviewStatus = ReviewStatusEnum.Pending;
+        Pet.Status = false;
+
+        try
+        {
+
+            context.Pet.Add(Pet);
+            await context.SaveChangesAsync();
+            NavigationManager.NavigateTo("/pets");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving pet: {ex.Message}");
+        }
     }
+
 }

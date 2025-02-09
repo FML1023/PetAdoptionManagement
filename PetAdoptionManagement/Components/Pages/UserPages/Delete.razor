@@ -1,79 +1,185 @@
 ﻿@page "/users/delete"
+@rendermode InteractiveServer
+@using PetAdoptionManagement.Data
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
 @using PetAdoptionManagement.Components.Domain
 @inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+@inject UserManager<PetAdoptionManagementUser> UserManager
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JS
 
-<PageTitle>Delete</PageTitle>
 
-<h1>Delete</h1>
+<PageTitle>Delete User</PageTitle>
 
-<p>Are you sure you want to delete this?</p>
-<div>
-    <h2>User</h2>
-    <hr />
-    @if (user is null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else {
-        <dl class="row">
-            <dt class="col-sm-2">Email</dt>
-            <dd class="col-sm-10">@user.Email</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">Password</dt>
-            <dd class="col-sm-10">@user.Password</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">Name</dt>
-            <dd class="col-sm-10">@user.Name</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">Age</dt>
-            <dd class="col-sm-10">@user.Age</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">Role</dt>
-            <dd class="col-sm-10">@user.Role</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">Address</dt>
-            <dd class="col-sm-10">@user.Address</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">PhoneNumber</dt>
-            <dd class="col-sm-10">@user.PhoneNumber</dd>
-        </dl>
-        <EditForm method="post" Model="user" OnValidSubmit="DeleteUser" FormName="delete" Enhance>
-            <button type="submit" class="btn btn-danger" disabled="@(user is null)">Delete</button> |
-            <a href="/users">Back to List</a>
-        </EditForm>
-    }
+<div class="container-fluid p-0" style="font-family: 'Poppins', sans-serif; background: #FFD194; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding-top: 50px;">
+    <div class="card shadow-lg" style="background: #fff8e1; border-radius: 15px; padding: 2rem; max-width: 600px; width: 100%; margin-top: -105px;">
+        <h2 class="text-center text-danger" style="font-weight: bold;">Delete Account</h2>
+        <p class="text-center text-muted">Are you sure you want to delete this account?</p>
+
+        @if (isLoading)
+        {
+            <p class="text-center"><em>Loading...</em></p>
+        }
+        else
+        {
+            @if (user is null)
+            {
+                <p class="text-danger text-center">User not found.</p>
+                <div class="text-center mt-4">
+                    <a href="/users/details" class="btn btn-outline-secondary px-5 py-2" style="border-radius: 25px;">Back to Users</a>
+                </div>
+            }
+            else if (!canDelete && string.IsNullOrEmpty(warningMessage))
+            {
+                <p class="text-danger text-center">You are not authorized to delete this account.</p>
+                <div class="text-center mt-4">
+                    <a href="/users/details" class="btn btn-outline-secondary px-5 py-2" style="border-radius: 25px;">Back to Users</a>
+                </div>
+            }
+            else
+            {
+                <dl class="row text-center text-md-start mt-4">
+                    <dt class="col-sm-4 text-md-end" style="color: #333;">Email:</dt>
+                    <dd class="col-sm-8">@user.Email</dd>
+
+                    <dt class="col-sm-4 text-md-end" style="color: #333;">Name:</dt>
+                    <dd class="col-sm-8">@user.Name</dd>
+
+                    <dt class="col-sm-4 text-md-end" style="color: #333;">Age:</dt>
+                    <dd class="col-sm-8">@(user.Age != 0 ? $"{user.Age} years old" : "Not set")</dd>
+
+                    <dt class="col-sm-4 text-md-end" style="color: #333;">Role:</dt>
+                    <dd class="col-sm-8">@user.Role</dd>
+
+                    <dt class="col-sm-4 text-md-end" style="color: #333;">Address:</dt>
+                    <dd class="col-sm-8">@(string.IsNullOrEmpty(user.Address) ? "Not set" : user.Address)</dd>
+
+                    <dt class="col-sm-4 text-md-end" style="color: #333;">Phone Number:</dt>
+                    <dd class="col-sm-8">@(string.IsNullOrEmpty(user.PhoneNumber) ? "Not set" : user.PhoneNumber)</dd>
+                </dl>
+
+                @if (!string.IsNullOrEmpty(warningMessage))
+                {
+                    <div class="alert alert-danger mt-3 text-center" style="border-radius: 15px; padding: 1rem; font-size: 1.1rem;">
+                        <strong>Warning:</strong> @warningMessage
+                    </div>
+                }
+
+                @if (showSuccessMessage)
+                {
+                    <div class="alert alert-success mt-3 text-center" style="border-radius: 15px; padding: 1rem; font-size: 1.1rem; color: #4F8A10; background: #DFF2BF; border: 1px solid #D6E9C6;">
+                        <strong>Success:</strong> Account deleted successfully. Redirecting...
+                    </div>
+                }
+
+                <EditForm Model="@user" method="post" OnValidSubmit="DeleteUser" FormName="deleteUserForm">
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="/users/details" class="btn btn-outline-secondary px-5 py-2" style="border-radius: 25px;">Cancel</a>
+                        <button type="submit" class="btn btn-danger px-5 py-2" style="border-radius: 25px;">Delete Account</button>
+                    </div>
+                </EditForm>
+            }
+        }
+    </div>
 </div>
-
 @code {
     private User? user;
+    private bool isLoading = true;
+    private bool canDelete = false;
+    private bool showSuccessMessage = false;
 
     [SupplyParameterFromQuery]
     private int Id { get; set; }
+    private string warningMessage = string.Empty; // Store warning message
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var currentUser = authState.User;
+
+        if (currentUser.Identity == null || !currentUser.Identity.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        var email = currentUser.Identity.Name;
+        var isAdmin = currentUser.IsInRole("Admin");
+
+        using var context = await DbFactory.CreateDbContextAsync();
         user = await context.User.FirstOrDefaultAsync(m => m.Id == Id);
 
-        if (user is null)
+        if (user == null)
         {
-            NavigationManager.NavigateTo("notfound");
+            NavigationManager.NavigateTo("/notfound");
+        }
+        else
+        {
+            isLoading = false;
+            canDelete = isAdmin || user.Email == email;
         }
     }
 
     private async Task DeleteUser()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.User.Remove(user!);
-        await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/users");
+        if (!canDelete || user == null) return;
+
+        using var context = await DbFactory.CreateDbContextAsync();
+        string userIdAsString = user.Id.ToString();
+
+        try
+        {
+            // Check if the user has pet listings
+            var pets = await context.Pet.Where(p => p.UserId == userIdAsString).ToListAsync();
+            if (pets.Any())
+            {
+                warningMessage = "You cannot delete your account because you have active pet listings. Please contact an admin.";
+                Console.WriteLine(warningMessage); // ✅ Log message in console
+                StateHasChanged(); // ✅ Force UI to refresh
+                return;
+            }
+
+            using var transaction = await context.Database.BeginTransactionAsync();
+
+            // Step 3: Delete the user from the custom User table
+            context.User.Remove(user);
+            await context.SaveChangesAsync();
+
+            // Step 4: Delete the user from AspNetUsers
+            var identityUser = await UserManager.FindByEmailAsync(user.Email);
+            if (identityUser != null)
+            {
+                await UserManager.DeleteAsync(identityUser);
+            }
+
+            // Step 5: Commit the transaction
+            await transaction.CommitAsync();
+
+            // Step 6: Redirect the user appropriately
+            var loggedInUserEmail = (await AuthenticationStateProvider.GetAuthenticationStateAsync()).User.Identity?.Name;
+            if (user.Email == loggedInUserEmail)
+            {
+
+                showSuccessMessage = true;
+                StateHasChanged();
+
+                await Task.Delay(1000);
+                NavigationManager.NavigateTo("/", forceLoad: true);
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/users");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting user: {ex.Message}");
+            warningMessage = "You cannot delete your account because you have active pet listings. Please contact an admin.";
+            StateHasChanged(); // ✅ Ensure UI updates even if an error occurs
+        }
     }
+
 }

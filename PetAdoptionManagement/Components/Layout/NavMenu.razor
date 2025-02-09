@@ -1,9 +1,10 @@
-﻿@implements IDisposable
+﻿@page "/menu"
+@implements IDisposable
 @inject NavigationManager NavigationManager
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">PetAdoptionManagement</a>
+        <a class="navbar-brand" href="/">Paws & Claws</a>
     </div>
 </div>
 
@@ -11,93 +12,14 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
-        <!-- Home -->
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-       
-        <!-- Requests -->
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="requests">
-                <span class="bi bi-file-earmark-text-nav-menu" aria-hidden="true"></span> Requests
-            </NavLink>
-        </div>
-
-        <!-- Applications -->
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="applications">
-                <span class="bi bi-clipboard-check-nav-menu" aria-hidden="true"></span> Applications
-            </NavLink>
-        </div>
-
-        <!-- Pets -->
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="pets">
-                <span class="bi bi-heart-fill-nav-menu" aria-hidden="true"></span> Pets
-            </NavLink>
-        </div>
-
-        <!-- Applicants -->
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="applicants">
-                <span class="bi bi-people-fill-nav-menu" aria-hidden="true"></span> Applicants
-            </NavLink>
-        </div>
-
-        <!-- Adopters -->
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="adopters">
-                <span class="bi bi-person-hearts-nav-menu" aria-hidden="true"></span> Adopters
-            </NavLink>
-        </div>
-
-        <!-- Spotlight -->
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="spotlights">
-                <span class="bi bi-star-fill-nav-menu" aria-hidden="true"></span> Spotlights
-            </NavLink>
-        </div>
-
-        <!-- Users -->
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="users">
-                <span class="bi bi-people-fill-nav-menu" aria-hidden="true"></span> Users
-            </NavLink>
-        </div>
-
-        <!-- Account Section -->
-        <AuthorizeView>
-            <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Manage">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <form action="Account/Logout" method="post">
-                        <AntiforgeryToken />
-                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                        <button type="submit" class="nav-link">
-                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
-                        </button>
-                    </form>
-                </div>
-            </Authorized>
-            <NotAuthorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Register">
-                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Login">
-                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
-                    </NavLink>
-                </div>
-            </NotAuthorized>
-        </AuthorizeView>
+        @foreach (var link in MenuLinks)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="@link.Url" Match="NavLinkMatch.All">
+                    <span class="@link.Icon" aria-hidden="true"></span> @link.Text
+                </NavLink>
+            </div>
+        }
     </nav>
 </div>
 
@@ -120,4 +42,20 @@
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
+
+    // Example menu links
+    private readonly List<MenuLink> MenuLinks = new()
+    {
+        new MenuLink("Home", "/", "bi bi-house-door-fill-nav-menu"),
+        new MenuLink("Menu", "/menu", "bi bi-list-nav-menu"),
+        new MenuLink("Requests", "/requests", "bi bi-file-earmark-text-nav-menu"),
+        new MenuLink("Applications", "/applications", "bi bi-clipboard-check-nav-menu"),
+        new MenuLink("Pets", "/pets", "bi bi-heart-fill-nav-menu"),
+        new MenuLink("Applicants", "/applicants", "bi bi-people-fill-nav-menu"),
+        new MenuLink("Adopters", "/adopters", "bi bi-person-hearts-nav-menu"),
+        new MenuLink("Spotlights", "/spotlights", "bi bi-star-fill-nav-menu"),
+        new MenuLink("Users", "/users", "bi bi-people-fill-nav-menu"),
+    };
+
+    private record MenuLink(string Text, string Url, string Icon);
 }

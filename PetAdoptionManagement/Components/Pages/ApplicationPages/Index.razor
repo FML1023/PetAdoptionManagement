@@ -1,4 +1,4 @@
-﻿@page "/applications"
+﻿@page "/application"
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using PetAdoptionManagement.Components.Domain
@@ -6,9 +6,9 @@
 @implements IAsyncDisposable
 @inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
 
-<PageTitle>Applications</PageTitle>
+<PageTitle>Index</PageTitle>
 
-<h1>Applications:</h1>
+<h1>Index</h1>
 
 <p>
     <a href="applications/create">Create New</a>
@@ -19,13 +19,11 @@
     <PropertyColumn Property="application => application.ReviewStatus" />
     <PropertyColumn Property="application => application.CreatedBy" />
     <PropertyColumn Property="application => application.PetID" />
-    <PropertyColumn Property="application => application.UserID" />
-
-    <TemplateColumn Context="application">
-        <a href="@($"applications/edit?id={application.Id}")">Edit</a> |
-        <a href="@($"applications/details?id={application.Id}")">Details</a> |
-        <a href="@($"applications/delete?id={application.Id}")">Delete</a>
-    </TemplateColumn>
+    <PropertyColumn Property="application => application.UserId" />
+    <PropertyColumn Property="application => application.ReasonForAdoption" />
+    <PropertyColumn Property="application => application.LivingSituation" />
+    <PropertyColumn Property="application => application.OtherPets" />
+    <PropertyColumn Property="application => application.PetExperience" />
 </QuickGrid>
 
 @code {

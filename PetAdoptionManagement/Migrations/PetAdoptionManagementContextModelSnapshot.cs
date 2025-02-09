@@ -176,89 +176,6 @@ namespace PetAdoptionManagement.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("PetAdoptionManagement.Components.Domain.Adopter", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Age")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LivingSituation")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OtherPets")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PetExperience")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ReviewStatus")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Adopter");
-                });
-
-            modelBuilder.Entity("PetAdoptionManagement.Components.Domain.Applicant", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Age")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ReviewStatus")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Applicant");
-                });
-
             modelBuilder.Entity("PetAdoptionManagement.Components.Domain.Application", b =>
                 {
                     b.Property<int>("Id")
@@ -267,27 +184,43 @@ namespace PetAdoptionManagement.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ApplicantId")
-                        .HasColumnType("int");
-
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("LivingSituation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OtherPets")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PetExperience")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("PetID")
                         .HasColumnType("int");
+
+                    b.Property<string>("ReasonForAdoption")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ReviewStatus")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserID")
-                        .HasColumnType("int");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicantId");
+                    b.HasIndex("PetID");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Application");
                 });
@@ -312,8 +245,11 @@ namespace PetAdoptionManagement.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Photos")
+                    b.Property<string>("PhotoPath")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ReviewStatus")
+                        .HasColumnType("int");
 
                     b.Property<string>("Species")
                         .HasColumnType("nvarchar(max)");
@@ -324,43 +260,15 @@ namespace PetAdoptionManagement.Migrations
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Pet");
-                });
-
-            modelBuilder.Entity("PetAdoptionManagement.Components.Domain.Request", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("AdopterId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("PetID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ReviewStatus")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserID")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AdopterId");
-
-                    b.HasIndex("PetID");
-
-                    b.HasIndex("UserID");
-
-                    b.ToTable("Request");
                 });
 
             modelBuilder.Entity("PetAdoptionManagement.Components.Domain.Spotlight", b =>
@@ -502,7 +410,7 @@ namespace PetAdoptionManagement.Migrations
                         {
                             Id = "3781efa7-66dc-47f0-860f-e506d04102e4",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "b652cd09-9a85-4ea5-88e9-62430a780b58",
+                            ConcurrencyStamp = "6fa527dd-c54d-4b3d-b782-fd309bbbef69",
                             Email = "admin@localhost.com",
                             EmailConfirmed = true,
                             FirstName = "Admin",
@@ -510,9 +418,9 @@ namespace PetAdoptionManagement.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@LOCALHOST.COM",
                             NormalizedUserName = "ADMIN@LOCALHOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEG0ENj61QpZIRklecRLxqI/xXx+vKbG8TjKdhOuH4xw3fABvRIrUxC/KXFpC8zDeRQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJT+y7EeFo2a5128ZbTjYx3Z7MlhC1/xW0Ftb2GrUJdz1iRTMjEZDyeC9hjNxH+B4A==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "2cc9c6c0-e0f7-472e-9ab6-59060160c035",
+                            SecurityStamp = "76df1067-4a34-4e74-81b8-639c1b02fd3b",
                             TwoFactorEnabled = false,
                             UserName = "admin@localhost.com"
                         });
@@ -569,54 +477,32 @@ namespace PetAdoptionManagement.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("PetAdoptionManagement.Components.Domain.Adopter", b =>
-                {
-                    b.HasOne("PetAdoptionManagement.Components.Domain.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("PetAdoptionManagement.Components.Domain.Applicant", b =>
-                {
-                    b.HasOne("PetAdoptionManagement.Components.Domain.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("PetAdoptionManagement.Components.Domain.Application", b =>
                 {
-                    b.HasOne("PetAdoptionManagement.Components.Domain.Applicant", null)
-                        .WithMany("Applications")
-                        .HasForeignKey("ApplicantId");
-                });
-
-            modelBuilder.Entity("PetAdoptionManagement.Components.Domain.Request", b =>
-                {
-                    b.HasOne("PetAdoptionManagement.Components.Domain.Adopter", null)
-                        .WithMany("Requests")
-                        .HasForeignKey("AdopterId");
-
                     b.HasOne("PetAdoptionManagement.Components.Domain.Pet", "Pet")
                         .WithMany()
                         .HasForeignKey("PetID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PetAdoptionManagement.Components.Domain.User", "User")
+                    b.HasOne("PetAdoptionManagement.Data.PetAdoptionManagementUser", "User")
                         .WithMany()
-                        .HasForeignKey("UserID")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Pet");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PetAdoptionManagement.Components.Domain.Pet", b =>
+                {
+                    b.HasOne("PetAdoptionManagement.Data.PetAdoptionManagementUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -628,16 +514,6 @@ namespace PetAdoptionManagement.Migrations
                         .HasForeignKey("PetId1");
 
                     b.Navigation("Pet");
-                });
-
-            modelBuilder.Entity("PetAdoptionManagement.Components.Domain.Adopter", b =>
-                {
-                    b.Navigation("Requests");
-                });
-
-            modelBuilder.Entity("PetAdoptionManagement.Components.Domain.Applicant", b =>
-                {
-                    b.Navigation("Applications");
                 });
 #pragma warning restore 612, 618
         }

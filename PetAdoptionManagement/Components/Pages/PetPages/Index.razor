@@ -1,43 +1,97 @@
 ﻿@page "/pets"
+@rendermode InteractiveServer
 @using Microsoft.EntityFrameworkCore
-@using Microsoft.AspNetCore.Components.QuickGrid
 @using PetAdoptionManagement.Components.Domain
 @using PetAdoptionManagement.Data
-@implements IAsyncDisposable
-@inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+@inject IDbContextFactory<PetAdoptionManagementContext> DbFactory
+@inject NavigationManager Navigation
 
 <PageTitle>Pets</PageTitle>
 
-<h1>Pets:</h1>
+<div class="container mt-4" style="font-family: 'Poppins', sans-serif; background-color: #fff8e1; padding: 20px; border-radius: 15px;">
+    <h1 class="mb-4 text-center" style="color: #333;">Pets</h1>
 
-<p>
-    <a href="pets/create">Create New</a>
-</p>
+    <p class="text-center">
+        <a class="btn btn-primary" href="/pets/create" style="border-radius: 25px;">Create New</a>
+    </p>
 
-<QuickGrid Class="table" Items="context.Pet">
-    <PropertyColumn Property="pet => pet.Name" />
-    <PropertyColumn Property="pet => pet.Species" />
-    <PropertyColumn Property="pet => pet.Breed" />
-    <PropertyColumn Property="pet => pet.Age" />
-    <PropertyColumn Property="pet => pet.Description" />
-    <PropertyColumn Property="pet => pet.Photos" />
-    <PropertyColumn Property="pet => pet.Status" />
-    <PropertyColumn Property="pet => pet.SpotlightId" />
+    <div class="d-flex">
+        <InputText class="form-control" placeholder="Search by Name or Species" @bind-Value="searchQuery" />
+        <button type="button" class="btn btn-primary ml-2" @onclick="OnSearchSubmitted">Search</button>
+    </div>
 
-    <TemplateColumn Context="pet">
-        <a href="@($"pets/edit?id={pet.Id}")">Edit</a> |
-        <a href="@($"pets/details?id={pet.Id}")">Details</a> |
-        <a href="@($"pets/delete?id={pet.Id}")">Delete</a>
-    </TemplateColumn>
-</QuickGrid>
+    <div class="row mt-3">
+        @if (filteredPets.Any())
+        {
+            foreach (var pet in filteredPets)
+            {
+                <div class="col-md-4 mb-4 d-flex align-items-stretch">
+                    <div class="card shadow-sm w-100" style="border-radius: 15px;">
+                       
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-center">@pet.Name</h5>
+                            <p class="card-text"><strong>Species:</strong> @pet.Species</p>
+                            <p class="card-text"><strong>Breed:</strong> @pet.Breed</p>
+                            <p class="card-text"><strong>Age:</strong> @pet.Age years</p>
+                            <a class="btn btn-outline-primary mt-auto w-100" href="@($"pets/details?id={pet.Id}")" style="border-radius: 25px;">Click to Find Out More</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center">
+                <p>No pets available matching your search. Click "Create New" to add a pet.</p>
+            </div>
+        }
+    </div>
+</div>
 
 @code {
-    private PetAdoptionManagementContext context = default!;
+    private string searchQuery = string.Empty;
+    private List<Pet> pets = new();
+    private List<Pet> filteredPets = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        context = DbFactory.CreateDbContext();
+        var dbContext = await DbFactory.CreateDbContextAsync();
+
+        // ✅ Filter pets by `Status == true` 
+        pets = await dbContext.Pet
+        .Include(p => p.User)
+            .Where(p => p.Status)
+            .ToListAsync();
+
+        filteredPets = pets;
+
+        // ✅ Extract query parameter correctly
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var queryParams = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+
+        if (queryParams.TryGetValue("search", out var searchParam))
+        {
+            searchQuery = searchParam.ToString();
+            FilterPets();
+        }
     }
 
-    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+    private void FilterPets()
+    {
+        filteredPets = string.IsNullOrWhiteSpace(searchQuery)
+            ? pets
+            : pets.Where(p =>
+                (p.Name?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (p.Species?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ?? false)
+            ).ToList();
+    }
+
+    private void OnSearchSubmitted()
+    {
+        // ✅ Update URL without page refresh
+        Navigation.NavigateTo($"/pets?search={Uri.EscapeDataString(searchQuery)}", forceLoad: false);
+
+        // ✅ Apply the filter immediately
+        FilterPets();
+    }
 }

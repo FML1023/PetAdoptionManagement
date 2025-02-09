@@ -1,23 +1,83 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
+<div class="d-flex flex-column vh-100" style="margin: 0; padding: 0;">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-gradient" style="background: linear-gradient(to right, #6a11cb, #2575fc);">
+        <a class="navbar-brand" href="/">🐾 Paws & Claws</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/">Home</NavLink>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" @onclick="ToggleMenu">Menu</a>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/about">About</NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/contact">Contact</NavLink>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow-1">
+        @Body
+    </main>
+
+    <!-- Right-Side Menu -->
+    <div class="menu-panel" style="@(isMenuVisible ? "right: 0;" : "right: -300px;")">
+        <h4 class="p-3 text-white">Menu</h4>
+        <ul class="list-group">
+            <li class="list-group-item">
+                <NavLink class="nav-link" href="/">Home</NavLink>
+            </li>
+            <li class="list-group-item">
+                <NavLink class="nav-link" href="/requests">Requests</NavLink>
+            </li>
+            <li class="list-group-item">
+                <NavLink class="nav-link" href="/applications">Applications</NavLink>
+            </li>
+            <li class="list-group-item">
+                <NavLink class="nav-link" href="/pets">Pets</NavLink>
+            </li>
+            <li class="list-group-item">
+                <NavLink class="nav-link" href="/applicants">Applicants</NavLink>
+            </li>
+            <li class="list-group-item">
+                <NavLink class="nav-link" href="/adopters">Adopters</NavLink>
+            </li>
+            <li class="list-group-item">
+                <NavLink class="nav-link" href="/spotlights">Spotlights</NavLink>
+            </li>
+            <li class="list-group-item">
+                <NavLink class="nav-link" href="/users">Users</NavLink>
+            </li>
+            <li class="list-group-item">
+                <NavLink class="nav-link" href="/register">Register</NavLink>
+            </li>
+        </ul>
     </div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+    <!-- Menu Overlay -->
+    <div class="menu-overlay" style="@(isMenuVisible ? "display: block;" : "display: none;")" @onclick="ToggleMenu"></div>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
+    <!-- Footer -->
+    <footer class="text-center p-3 bg-light">
+        © 2025 Paws & Claws - All rights reserved.
+    </footer>
 </div>
 
-<div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
-</div>
+@code {
+    private bool isMenuVisible = false;
+
+    private void ToggleMenu()
+    {
+        isMenuVisible = !isMenuVisible;
+    }
+}

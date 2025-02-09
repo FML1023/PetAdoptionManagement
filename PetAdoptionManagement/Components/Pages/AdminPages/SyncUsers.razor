@@ -1,0 +1,30 @@
+﻿@page "/admin/sync-users"
+@inject UserService UserService
+
+<h2>Sync Users</h2>
+
+@if (isSyncing)
+{
+    <p>Syncing users... Please wait.</p>
+}
+else if (syncComplete)
+{
+    <p class="text-success">User data successfully synced!</p>
+}
+else
+{
+    <button class="btn btn-primary" @onclick="SyncsUsers">Sync Users Now</button>
+}
+
+@code {
+    private bool isSyncing = false;
+    private bool syncComplete = false;
+
+    private async Task SyncsUsers()
+    {
+        isSyncing = true;
+        await UserService.SyncUsersAsync(); // ✅ Ensure this works
+        isSyncing = false;
+        syncComplete = true;
+    }
+}

@@ -4,52 +4,57 @@
 @inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
 @inject NavigationManager NavigationManager
 
-<PageTitle>Edit</PageTitle>
+<PageTitle>Edit Spotlight</PageTitle>
 
-<h1>Edit</h1>
+<div class="container mt-5" style="font-family: 'Poppins', sans-serif; background: #fff8e1; padding: 2rem; border-radius: 15px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+    <!-- Back to Spotlights List Button -->
+    <a class="btn btn-outline-primary mb-4" href="/spotlights" style="border-radius: 25px;">Back to List</a>
 
-<h2>Spotlight</h2>
-<hr />
-@if (Spotlight is null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-4">
+    <!-- Page Title -->
+    <h1 class="mb-3" style="color: #D1913C;">Edit Spotlight</h1>
+
+    @if (Spotlight is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <!-- Spotlight Edit Form -->
+        <div class="card shadow-sm" style="background: white; border-radius: 15px; padding: 1.5rem;">
+            <h4 class="text-center mb-4" style="color: #D1913C;">Spotlight Information</h4>
             <EditForm method="post" Model="Spotlight" OnValidSubmit="UpdateSpotlight" FormName="edit" Enhance>
                 <DataAnnotationsValidator />
-                <ValidationSummary role="alert"/>
-                <input type="hidden" name="Spotlight.Id" value="@Spotlight.Id" />
+                <ValidationSummary role="alert" />
+
                 <div class="mb-3">
-                    <label for="startdate" class="form-label">StartDate:</label>
+                    <label for="startdate" class="form-label">Start Date:</label>
                     <InputDate id="startdate" @bind-Value="Spotlight.StartDate" class="form-control" />
                     <ValidationMessage For="() => Spotlight.StartDate" class="text-danger" />
                 </div>
+
                 <div class="mb-3">
                     <label for="reason" class="form-label">Reason:</label>
                     <InputText id="reason" @bind-Value="Spotlight.Reason" class="form-control" />
                     <ValidationMessage For="() => Spotlight.Reason" class="text-danger" />
                 </div>
+
                 <div class="mb-3">
                     <label for="status" class="form-label">Status:</label>
                     <InputCheckbox id="status" @bind-Value="Spotlight.Status" class="form-check-input" />
                     <ValidationMessage For="() => Spotlight.Status" class="text-danger" />
                 </div>
+
                 <div class="mb-3">
-                    <label for="petid" class="form-label">PetId:</label>
+                    <label for="petid" class="form-label">Pet ID:</label>
                     <InputNumber id="petid" @bind-Value="Spotlight.PetId" class="form-control" />
                     <ValidationMessage For="() => Spotlight.PetId" class="text-danger" />
                 </div>
-                <button type="submit" class="btn btn-primary">Save</button>
+
+                <!-- Save Button -->
+                <button type="submit" class="btn btn-primary w-100" style="border-radius: 25px;">Save Changes</button>
             </EditForm>
         </div>
-    </div>
-}
-
-<div>
-    <a href="/spotlights">Back to List</a>
+    }
 </div>
 
 @code {
@@ -70,8 +75,6 @@ else
         }
     }
 
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task UpdateSpotlight()
     {
         using var context = DbFactory.CreateDbContext();

@@ -1,41 +1,91 @@
 ﻿@page "/users"
 @using Microsoft.EntityFrameworkCore
-@using Microsoft.AspNetCore.Components.QuickGrid
 @using PetAdoptionManagement.Components.Domain
 @using PetAdoptionManagement.Data
 @implements IAsyncDisposable
 @inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
 
-<PageTitle>Users</PageTitle>
+@attribute [Authorize(Roles = "Administrator")]
 
-<h1>Users:</h1>
+<PageTitle>Manage Users</PageTitle>
 
-<p>
-    <a href="users/create">Create New</a>
-</p>
+<div class="container-fluid p-0" style="font-family: 'Poppins', sans-serif; background: #FFD194; min-height: 100vh; display: flex; flex-direction: column; align-items: center;">
+    <div class="container my-5" style="background: #fff8e1; border-radius: 15px; padding: 2rem; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+        <h2 class="text-center mb-4" style="color: #D1913C;">Admin Panel - Manage Users</h2>
+        <hr />
 
-<QuickGrid Class="table" Items="context.User">
-    <PropertyColumn Property="user => user.Email" />
-    <PropertyColumn Property="user => user.Password" />
-    <PropertyColumn Property="user => user.Name" />
-    <PropertyColumn Property="user => user.Age" />
-    <PropertyColumn Property="user => user.Role" />
-    <PropertyColumn Property="user => user.Address" />
-    <PropertyColumn Property="user => user.PhoneNumber" />
-
-    <TemplateColumn Context="user">
-        <a href="@($"users/edit?id={user.Id}")">Edit</a> |
-        <a href="@($"users/details?id={user.Id}")">Details</a> |
-        <a href="@($"users/delete?id={user.Id}")">Delete</a>
-    </TemplateColumn>
-</QuickGrid>
+        @if (isLoading)
+        {
+            <p class="text-center"><em>Loading users...</em></p>
+        }
+        else if (!users.Any())
+        {
+            <p class="text-center text-muted">No users found.</p>
+        }
+        else
+        {
+            <div class="d-flex justify-content-center mb-4">
+                <a href="/users" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 25px; margin-right: 10px;">All Users</a>
+                <a href="/admin/petApprovals" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 25px; margin-right: 10px;">All Pet Listings</a>
+                <a href="/admin/applicationApprovals" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 25px;">All Applications</a>
+            </div>
+            <table class="table table-bordered table-hover text-center">
+                <thead class="table-light">
+                    <tr>
+                        <th>Email</th>
+                        <th>Name</th>
+                        <th>Age</th>
+                        <th>Role</th>
+                        <th>Address</th>
+                        <th>Phone Number</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in users)
+                    {
+                        <tr>
+                            <td>@user.Email</td>
+                            <td>@user.Name</td>
+                            <td>@(user.Age != 0 ? $"{user.Age} years old" : "Not set")</td>
+                            <td>@user.Role</td>
+                            <td>@(string.IsNullOrEmpty(user.Address) ? "Not set" : user.Address)</td>
+                            <td>@(string.IsNullOrEmpty(user.PhoneNumber) ? "Not set" : user.PhoneNumber)</td>
+                            <td>
+                                <a href="@($"users/edit?id={user.Id}")" class="btn btn-warning btn-sm mx-1" style="border-radius: 15px;">Edit</a>
+                                <a href="@($"users/details?id={user.Id}")" class="btn btn-info btn-sm mx-1" style="border-radius: 15px;">Details</a>
+                                <a href="@($"users/delete?id={user.Id}")" class="btn btn-danger btn-sm mx-1" style="border-radius: 15px;">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
 
 @code {
+    private List<User> users = new();
+    private bool isLoading = true;
     private PetAdoptionManagementContext context = default!;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         context = DbFactory.CreateDbContext();
+        isLoading = true;
+
+        try
+        {
+            users = await context.User.ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching users: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
     }
 
     public async ValueTask DisposeAsync() => await context.DisposeAsync();

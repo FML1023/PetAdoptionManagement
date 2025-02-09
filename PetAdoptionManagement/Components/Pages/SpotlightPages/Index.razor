@@ -1,6 +1,5 @@
 ﻿@page "/spotlights"
 @using Microsoft.EntityFrameworkCore
-@using Microsoft.AspNetCore.Components.QuickGrid
 @using PetAdoptionManagement.Components.Domain
 @using PetAdoptionManagement.Data
 @implements IAsyncDisposable
@@ -8,32 +7,65 @@
 
 <PageTitle>Pet Spotlight</PageTitle>
 
-<h1>Pet Spotlight:</h1>
+<div class="container mt-5" style="font-family: 'Poppins', sans-serif; background: #fff8e1; padding: 2rem; border-radius: 15px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+    <!-- Back to Home Button -->
+    <a class="btn btn-outline-primary mb-4" href="/" style="border-radius: 25px;">Back to Home</a>
 
-<p>
-    <a href="spotlights/create">Create New</a>
-</p>
+    <!-- Page Title -->
+    <h1 class="mb-3" style="color: #D1913C;">Pet Spotlight</h1>
+    <p class="text-muted">Highlight special pets and provide reasons for their spotlight status.</p>
 
-<QuickGrid Class="table" Items="context.Spotlight">
-    <PropertyColumn Property="spotlight => spotlight.StartDate" />
-    <PropertyColumn Property="spotlight => spotlight.Reason" />
-    <PropertyColumn Property="spotlight => spotlight.Status" />
-    <PropertyColumn Property="spotlight => spotlight.PetId" />
+    <!-- Create New Button -->
+    <p>
+        <a href="/spotlights/create" class="btn btn-primary" style="border-radius: 25px;">Create New</a>
+    </p>
 
-    <TemplateColumn Context="spotlight">
-        <a href="@($"spotlights/edit?id={spotlight.Id}")">Edit</a> |
-        <a href="@($"spotlights/details?id={spotlight.Id}")">Details</a> |
-        <a href="@($"spotlights/delete?id={spotlight.Id}")">Delete</a>
-    </TemplateColumn>
-</QuickGrid>
+    @if (spotlights != null && spotlights.Any())
+    {
+        <!-- Spotlight Cards Section -->
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+            @foreach (var spotlight in spotlights)
+            {
+                <div class="col">
+                    <div class="card shadow-sm" style="border-radius: 15px; background: #fff;">
+                        <!-- Image Section -->
+                        <img src="placeholder.jpg" alt="Spotlight Pet" class="card-img-top" style="height: 200px; object-fit: cover; border-top-left-radius: 15px; border-top-right-radius: 15px;" />
+
+                        <div class="card-body">
+                            <h5 class="card-title" style="color: #D1913C;">@spotlight.Reason</h5>
+                            <p class="card-text"><strong>Start Date:</strong> @spotlight.StartDate.ToString("yyyy-MM-dd")</p>
+                            <p class="card-text"><strong>Status:</strong> @spotlight.Status</p>
+                            <p class="card-text"><strong>Pet ID:</strong> @spotlight.PetId</p>
+                            <div class="d-flex justify-content-between">
+                                <a href="@($"spotlights/details?id={spotlight.Id}")" class="btn btn-outline-primary btn-sm" style="border-radius: 25px;">Details</a>
+                                <a href="@($"spotlights/edit?id={spotlight.Id}")" class="btn btn-success btn-sm" style="border-radius: 25px;">Edit</a>
+                                <a href="@($"spotlights/delete?id={spotlight.Id}")" class="btn btn-danger btn-sm" style="border-radius: 25px;">Delete</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="text-center mt-4">
+            <p class="text-muted">No spotlights available. Click "Create New" to highlight a pet.</p>
+        </div>
+    }
+</div>
 
 @code {
-    private PetAdoptionManagementContext context = default!;
+    private List<Spotlight> spotlights = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         context = DbFactory.CreateDbContext();
+        spotlights = await context.Spotlight.ToListAsync(); // Fetch spotlight data
     }
+
+    private PetAdoptionManagementContext context = default!;
 
     public async ValueTask DisposeAsync() => await context.DisposeAsync();
 }

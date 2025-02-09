@@ -1,0 +1,13 @@
+﻿@page "/Account/Logout"
+
+@using PetAdoptionManagement.Data
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<PetAdoptionManagementUser> SignInManager
+@inject NavigationManager NavigationManager
+@functions {
+    protected override async Task OnInitializedAsync()
+    {
+        await SignInManager.SignOutAsync(); // Logs out the user
+        NavigationManager.NavigateTo("/", true); 
+    }
+}

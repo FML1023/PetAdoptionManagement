@@ -1,0 +1,12 @@
+﻿@page "/test"
+
+<h3>Test Button Click</h3>
+
+<button @onclick="HandleClick">Click Me</button>
+
+@code {
+    private void HandleClick()
+    {
+        Console.WriteLine("Button clicked!"); // This should print in the console
+    }
+}

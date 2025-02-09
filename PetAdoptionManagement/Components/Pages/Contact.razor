@@ -1,0 +1,51 @@
+﻿@page "/contact"
+
+<div class="container mt-5 position-relative" style="font-family: 'Poppins', sans-serif;">
+    <!-- Back to Home Button -->
+    <a class="btn btn-outline-primary" href="/" style="position: absolute; top: 20px; right: 20px; border-radius: 25px;">
+        Back to Home
+    </a>
+
+    <!-- Page Title -->
+    <h1 class="text-center mb-4" style="color: #333;">Contact Us</h1>
+    <p class="text-center mb-5" style="font-size: 1.1rem; color: #555;">
+        Have questions or need assistance? We'd love to hear from you! Fill out the form below or use any of the contact methods provided.
+    </p>
+
+    <!-- Contact Form -->
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <form>
+                <div class="mb-3">
+                    <label for="name" class="form-label">Your Name</label>
+                    <input type="text" id="name" class="form-control" placeholder="Enter your name" />
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Your Email</label>
+                    <input type="email" id="email" class="form-control" placeholder="Enter your email" />
+                </div>
+                <div class="mb-3">
+                    <label for="message" class="form-label">Your Message</label>
+                    <textarea id="message" class="form-control" rows="5" placeholder="Type your message here"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Send Message</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Contact Details -->
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-4 text-center">
+            <h5><i class="bi bi-envelope-fill"></i> Email Us</h5>
+            <p>support@pawsandclaws.com</p>
+        </div>
+        <div class="col-md-4 text-center">
+            <h5><i class="bi bi-telephone-fill"></i> Call Us</h5>
+            <p>+123 456 7890</p>
+        </div>
+        <div class="col-md-4 text-center">
+            <h5><i class="bi bi-geo-alt-fill"></i> Visit Us</h5>
+            <p>123 Pet Street, Animal City, 56789</p>
+        </div>
+    </div>
+</div>

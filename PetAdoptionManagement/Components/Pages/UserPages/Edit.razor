@@ -1,119 +1,140 @@
 ﻿@page "/users/edit"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.EntityFrameworkCore
 @using PetAdoptionManagement.Components.Domain
 @inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-<PageTitle>Edit</PageTitle>
+<PageTitle>Edit Profile</PageTitle>
 
-<h1>Edit</h1>
+<div class="container-fluid p-0" style="font-family: 'Poppins', sans-serif; background: #FFD194; min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+    <div class="card shadow-lg" style="background: #fff8e1; border-radius: 15px; padding: 2rem; max-width: 600px; width: 100%;">
+        <h2 class="text-center mb-4" style="color: #D1913C;">Edit Profile</h2>
 
-<h2>User</h2>
-<hr />
-@if (User is null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-4">
-            <EditForm method="post" Model="User" OnValidSubmit="UpdateUser" FormName="edit" Enhance>
+        @if (isLoading)
+        {
+            <p class="text-center text-muted"><em>Loading...</em></p>
+        }
+        else if (user is null)
+        {
+            <p class="text-danger text-center">User not found.</p>
+            <div class="text-center mt-4">
+                <a href="/" class="btn btn-outline-secondary px-5 py-2" style="border-radius: 25px;">Back to Home</a>
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@user" OnValidSubmit="SaveChanges" FormName="editProfileForm">
                 <DataAnnotationsValidator />
-                <ValidationSummary role="alert"/>
-                <input type="hidden" name="User.Id" value="@User.Id" />
-                <div class="mb-3">
-                    <label for="email" class="form-label">Email:</label>
-                    <InputText id="email" @bind-Value="User.Email" class="form-control" />
-                    <ValidationMessage For="() => User.Email" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="password" class="form-label">Password:</label>
-                    <InputText id="password" @bind-Value="User.Password" class="form-control" />
-                    <ValidationMessage For="() => User.Password" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="name" class="form-label">Name:</label>
-                    <InputText id="name" @bind-Value="User.Name" class="form-control" />
-                    <ValidationMessage For="() => User.Name" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="age" class="form-label">Age:</label>
-                    <InputNumber id="age" @bind-Value="User.Age" class="form-control" />
-                    <ValidationMessage For="() => User.Age" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="role" class="form-label">Role:</label>
-                    <InputText id="role" @bind-Value="User.Role" class="form-control" />
-                    <ValidationMessage For="() => User.Role" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="address" class="form-label">Address:</label>
-                    <InputText id="address" @bind-Value="User.Address" class="form-control" />
-                    <ValidationMessage For="() => User.Address" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="phonenumber" class="form-label">PhoneNumber:</label>
-                    <InputText id="phonenumber" @bind-Value="User.PhoneNumber" class="form-control" />
-                    <ValidationMessage For="() => User.PhoneNumber" class="text-danger" />
-                </div>
-                <button type="submit" class="btn btn-primary">Save</button>
-            </EditForm>
-        </div>
-    </div>
-}
+                <ValidationSummary class="text-danger mb-3" />
 
-<div>
-    <a href="/users">Back to List</a>
+                <!-- Email -->
+                <div class="mb-3">
+                    <label for="email" class="form-label" style="color: #333;">Email</label>
+                    <InputText id="email" class="form-control" @bind-Value="user.Email" disabled style="background: #f9f9f9;" />
+                </div>
+
+                <!-- Name -->
+                <div class="mb-3">
+                    <label for="name" class="form-label" style="color: #333;">Name</label>
+                    <InputText id="name" class="form-control" @bind-Value="user.Name" disabled style="background: #f9f9f9;" />
+                </div>
+
+                <!-- Age -->
+                <div class="mb-3">
+                    <label for="age" class="form-label" style="color: #333;">Age</label>
+                    <InputNumber id="age" class="form-control" @bind-Value="user.Age" placeholder="Enter your age" />
+                    <ValidationMessage For="() => user.Age" class="text-danger" />
+                </div>
+
+                <!-- Phone -->
+                <div class="mb-3">
+                    <label for="phone" class="form-label" style="color: #333;">Phone Number</label>
+                    <InputText id="phone" class="form-control" @bind-Value="user.PhoneNumber" placeholder="Enter your phone number" />
+                    <ValidationMessage For="() => user.PhoneNumber" class="text-danger" />
+                </div>
+
+                <!-- Address -->
+                <div class="mb-3">
+                    <label for="address" class="form-label" style="color: #333;">Address</label>
+                    <InputText id="address" class="form-control" @bind-Value="user.Address" placeholder="Enter your address" />
+                    <ValidationMessage For="() => user.Address" class="text-danger" />
+                </div>
+
+
+                @if (showSuccessMessage)
+                {
+                    <div class="alert alert-success mt-4" style="border-radius: 15px; padding: 1rem; font-size: 1.1rem; text-align: center; background: #DFF2BF; color: #4F8A10; border: 1px solid #D6E9C6;">
+                        🎉 Changes saved successfully! You will be redirected to your profile shortly.
+                    </div>
+                }
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="submit" class="btn btn-success px-5 py-2" style="border-radius: 25px;">Save Changes</button>
+                    <a href="/users/details" class="btn btn-outline-secondary px-5 py-2" style="border-radius: 25px;">Cancel</a>
+                </div>
+            </EditForm>
+        }
+    </div>
 </div>
 
-@code {
-    [SupplyParameterFromQuery]
-    private int Id { get; set; }
 
-    [SupplyParameterFromForm]
-    private User? User { get; set; }
+@code {
+    private User? user;
+    private bool isLoading = true;
+    private bool showSuccessMessage = false;
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        User ??= await context.User.FirstOrDefaultAsync(m => m.Id == Id);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var currentUser = authState.User;
 
-        if (User is null)
+        if (currentUser.Identity == null || !currentUser.Identity.IsAuthenticated)
         {
-            NavigationManager.NavigateTo("notfound");
+            NavigationManager.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        var email = currentUser.Identity.Name;
+
+        using var context = await DbFactory.CreateDbContextAsync();
+        user = await context.User.FirstOrDefaultAsync(u => u.Email == email);
+
+        if (user == null)
+        {
+            NavigationManager.NavigateTo("/notfound");
+        }
+        else
+        {
+            isLoading = false;
         }
     }
 
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
-    private async Task UpdateUser()
+    private async Task SaveChanges()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Attach(User!).State = EntityState.Modified;
+        if (user == null) return;
 
-        try
+        using var context = await DbFactory.CreateDbContextAsync();
+        var dbUser = await context.User.FirstOrDefaultAsync(u => u.Email == user.Email);
+
+        if (dbUser != null)
         {
+            dbUser.Age = user.Age;
+            dbUser.PhoneNumber = user.PhoneNumber;
+            dbUser.Address = user.Address;
+
+            showSuccessMessage = true;
+            StateHasChanged();
+
             await context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!UserExists(User!.Id))
-            {
-                NavigationManager.NavigateTo("notfound");
-            }
-            else
-            {
-                throw;
-            }
-        }
 
-        NavigationManager.NavigateTo("/users");
-    }
 
-    private bool UserExists(int id)
-    {
-        using var context = DbFactory.CreateDbContext();
-        return context.User.Any(e => e.Id == id);
+            await Task.Delay(1000);
+            NavigationManager.NavigateTo("/users/details");
+
+        }
     }
 }

@@ -6,78 +6,77 @@
 
 <PageTitle>Delete</PageTitle>
 
-<h1>Delete</h1>
-
-<p>Are you sure you want to delete this?</p>
-<div>
-    <h2>Pet</h2>
+<div class="container mt-5" style="font-family: 'Poppins', sans-serif; background-color: #fff8e1; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+    <h1 class="text-center" style="color: #D1913C;">Confirm Delete</h1>
     <hr />
-    @if (pet is null)
+    @if (Pet is null)
     {
-        <p><em>Loading...</em></p>
+        <p class="text-center"><em>Loading...</em></p>
     }
-    else {
+    else
+    {
         <dl class="row">
-            <dt class="col-sm-2">Name</dt>
-            <dd class="col-sm-10">@pet.Name</dd>
+            <dt class="col-sm-3">Name</dt>
+            <dd class="col-sm-9">@Pet.Name</dd>
+
+            <!-- Other Fields -->
         </dl>
-        <dl class="row">
-            <dt class="col-sm-2">Species</dt>
-            <dd class="col-sm-10">@pet.Species</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">Breed</dt>
-            <dd class="col-sm-10">@pet.Breed</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">Age</dt>
-            <dd class="col-sm-10">@pet.Age</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">Description</dt>
-            <dd class="col-sm-10">@pet.Description</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">Photos</dt>
-            <dd class="col-sm-10">@pet.Photos</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">Status</dt>
-            <dd class="col-sm-10">@pet.Status</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">SpotlightId</dt>
-            <dd class="col-sm-10">@pet.SpotlightId</dd>
-        </dl>
-        <EditForm method="post" Model="pet" OnValidSubmit="DeletePet" FormName="delete" Enhance>
-            <button type="submit" class="btn btn-danger" disabled="@(pet is null)">Delete</button> |
-            <a href="/pets">Back to List</a>
-        </EditForm>
+        <div class="text-center mt-4">
+            <form method="post" @formname="DeletePetForm" @onsubmit="HandleSubmit">
+                <!-- Antiforgery Token -->
+                <AntiforgeryToken />
+
+                <!-- Hidden input to pass the Pet ID -->
+                <input type="hidden" name="PetId" value="@Pet?.Id" />
+
+                <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                <a href="/pets" class="btn btn-outline-secondary">Cancel</a>
+            </form>
+        </div>
     }
 </div>
 
 @code {
-    private Pet? pet;
-
+    [Parameter]
     [SupplyParameterFromQuery]
-    private int Id { get; set; }
+    public int Id { get; set; }
+
+    private Pet? Pet { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        Console.WriteLine($"Fetching pet with Id: {Id}"); // Debug output
         using var context = DbFactory.CreateDbContext();
-        pet = await context.Pet.FirstOrDefaultAsync(m => m.Id == Id);
+        Pet = await context.Pet.FirstOrDefaultAsync(m => m.Id == Id);
 
-        if (pet is null)
+        if (Pet is null)
         {
+            Console.WriteLine($"Pet with Id: {Id} not found"); // Debug output
             NavigationManager.NavigateTo("notfound");
         }
     }
 
-    private async Task DeletePet()
+    private async Task HandleSubmit()
     {
+        // Get the pet ID from the hidden input
+        if (Pet is null)
+        {
+            NavigationManager.NavigateTo("/pets");
+            return;
+        }
+
         using var context = DbFactory.CreateDbContext();
-        context.Pet.Remove(pet!);
+        var petToDelete = await context.Pet.FirstOrDefaultAsync(p => p.Id == Pet.Id);
+
+        if (petToDelete is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+            return;
+        }
+
+        context.Pet.Remove(petToDelete);
         await context.SaveChangesAsync();
+
         NavigationManager.NavigateTo("/pets");
     }
 }

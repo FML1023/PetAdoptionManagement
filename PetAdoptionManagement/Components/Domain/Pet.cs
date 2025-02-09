@@ -1,4 +1,6 @@
-﻿namespace PetAdoptionManagement.Components.Domain
+﻿using PetAdoptionManagement.Data;
+
+namespace PetAdoptionManagement.Components.Domain
 {
     public class Pet : BaseDomainModel
     {
@@ -7,8 +9,16 @@
         public string? Breed { get; set; }
         public int Age { get; set; }
         public string? Description { get; set; }
-        public IList<string>? Photos { get; set; } 
         public bool Status { get; set; }
+        public string? PhotoPath { get; set; }
+        public string UserId { get; set; } = string.Empty;
+        public virtual PetAdoptionManagementUser? User { get; set; }
         public int SpotlightId { get; set; }
+        public ReviewStatusEnum ReviewStatus { get; set; } = ReviewStatusEnum.Pending; 
+
     }
 }
+
+
+
+  

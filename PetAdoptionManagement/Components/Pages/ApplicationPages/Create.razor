@@ -1,76 +1,157 @@
-﻿@page "/applications/create"
-@using Microsoft.EntityFrameworkCore
-@using PetAdoptionManagement.Components.Domain
-@inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+﻿@page "/application/create"
+@rendermode InteractiveServer
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IDbContextFactory<PetAdoptionManagementContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject UserManager<PetAdoptionManagementUser> UserManager
 
-<PageTitle>Create</PageTitle>
+<PageTitle>Apply to Adopt</PageTitle>
 
-<h1>Create</h1>
+<div class="container mt-5" style="font-family: 'Poppins', sans-serif;">
+    <div class="card shadow-sm" style="border-radius: 15px; background: #fff8e1; padding: 2rem; max-width: 800px; margin: 0 auto;">
+        <h1 class="mb-4" style="color: #D1913C;">Adoption Application</h1>
 
-<h2>Application</h2>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <EditForm method="post" Model="Application" OnValidSubmit="AddApplication" FormName="create" Enhance>
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
+        <!-- Debugging Message -->
+        @if (Application != null)
+        {
+            <EditForm Model="@Application" OnValidSubmit="SubmitApplication">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" />
 
-            <div class="mb-3">
-                <label for="datecreated" class="form-label">DateCreated:</label>
-                <InputDate id="datecreated" @bind-Value="Application.DateCreated" class="form-control" />
-                <ValidationMessage For="() => Application.DateCreated" class="text-danger" />
-            </div>
+                <div class="mb-3">
+                    <label for="petName" class="form-label">Pet Name:</label>
+                    <p class="form-control-plaintext">@Pet?.Name</p>
+                </div>
 
-            <!-- Review Status Dropdown -->
-            <div class="mb-3">
-                <label for="reviewstatus" class="form-label">Review Status:</label>
-                <select id="reviewstatus" @bind="Application.ReviewStatus" class="form-control">
-                    @foreach (var status in Enum.GetValues(typeof(ReviewStatusEnum)))
-                    {
-                        <option value="@status">@status</option>
-                    }
-                </select>
-                <ValidationMessage For="() => Application.ReviewStatus" class="text-danger" />
-            </div>
 
-            <div class="mb-3">
-                <label for="createdby" class="form-label">Created By:</label>
-                <InputText id="createdby" @bind-Value="Application.CreatedBy" class="form-control" />
-                <ValidationMessage For="() => Application.CreatedBy" class="text-danger" />
-            </div>
+                <!-- Reason for Adoption -->
+                <div class="mb-3">
+                    <label for="reason">Reason for Adoption:</label>
+                    <InputTextArea id="reason" @bind-Value="Application.ReasonForAdoption" class="form-control" />
+                    <ValidationMessage For="() => Application.ReasonForAdoption" />
+                </div>
 
-            <div class="mb-3">
-                <label for="petid" class="form-label">PetID:</label>
-                <InputNumber id="petid" @bind-Value="Application.PetID" class="form-control" />
-                <ValidationMessage For="() => Application.PetID" class="text-danger" />
-            </div>
+                <!-- Living Situation -->
+                <div class="mb-3">
+                    <label for="livingSituation" class="form-label">Living Situation:</label>
+                    <InputText id="livingSituation" @bind-Value="Application.LivingSituation" class="form-control" placeholder="Describe your home environment" />
+                    <ValidationMessage For="() => Application.LivingSituation" class="text-danger" />
+                </div>
 
-            <div class="mb-3">
-                <label for="userid" class="form-label">UserID:</label>
-                <InputNumber id="userid" @bind-Value="Application.UserID" class="form-control" />
-                <ValidationMessage For="() => Application.UserID" class="text-danger" />
-            </div>
+                <!-- Other Pets -->
+                <div class="mb-3">
+                    <label for="otherPets" class="form-label">Do you have other pets?</label>
+                    <InputText id="otherPets" @bind-Value="Application.OtherPets" class="form-control" placeholder="List any pets you currently own" />
+                    <ValidationMessage For="() => Application.OtherPets" class="text-danger" />
+                </div>
 
-            <button type="submit" class="btn btn-primary">Create</button>
-        </EditForm>
+                <!-- Pet Experience -->
+                <div class="mb-3">
+                    <label for="experience" class="form-label">Experience with Pets:</label>
+                    <InputText id="experience" @bind-Value="Application.PetExperience" class="form-control" placeholder="Describe your past experience with pets" />
+                    <ValidationMessage For="() => Application.PetExperience" class="text-danger" />
+                </div>
+
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </EditForm>
+        }
+        else
+        {
+            <p>Loading application...</p>
+        }
+
+    <div class="text-center mt-4">
+        <a href="/pets" class="btn btn-outline-secondary" style="border-radius: 25px;">Back to Pets</a>
     </div>
 </div>
-
-<div>
-    <a href="/applications">Back to List</a>
 </div>
 
 @code {
-    [SupplyParameterFromForm]
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+    private Pet? Pet;
     private Application Application { get; set; } = new();
+    private string UserId { get; set; } = string.Empty;
+    private bool isLoading = true;
 
-    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
-    private async Task AddApplication()
+    protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Application.Add(Application);
-        await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/applications");
+        Console.WriteLine("Initializing Adoption Application...");
+        Console.WriteLine($"Received Pet ID: {Id}"); // ✅ Debugging
+
+        using var context = await DbFactory.CreateDbContextAsync();
+        Pet = await context.Pet.FirstOrDefaultAsync(p => p.Id == Id);
+
+        if (Pet == null)
+        {
+            Console.WriteLine("Pet not found. Redirecting...");
+            NavigationManager.NavigateTo("/notfound");
+            return;
+        }
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var appUser = await UserManager.GetUserAsync(user);
+            if (appUser != null)
+            {
+                Application = new Application 
+                    {
+                        UserId = appUser.Id.Trim(),
+                        CreatedBy = appUser.Email,
+                        PetID = Pet.Id,
+                        DateCreated = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,
+                                     TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time")),
+                        ReviewStatus = ReviewStatusEnum.Pending,
+                        ReasonForAdoption = string.Empty, 
+                        LivingSituation = string.Empty,
+                        OtherPets = string.Empty,
+                        PetExperience = string.Empty
+                    };
+
+                Console.WriteLine($"Application Initialized: UserID: {Application.UserId}, PetID: {Application.PetID}");
+            }
+            else
+            {
+                Console.WriteLine("User is authenticated but AppUser is NULL.");
+            }
+        }
+        else
+        {
+            Console.WriteLine("User is not authenticated.");
+        }
+
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task SubmitApplication()
+    {
+        if (string.IsNullOrEmpty(Application.UserId))
+        {
+            Console.WriteLine("User is not authenticated or UserId not found.");
+            NavigationManager.NavigateTo("/pets");
+            return;
+        }
+
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        Application.DateCreated = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,
+                             TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time"));
+        Application.ReviewStatus = ReviewStatusEnum.Pending;
+
+        try
+        {
+            context.Application.Add(Application);
+            await context.SaveChangesAsync();
+            Console.WriteLine("Application successfully submitted!");
+            NavigationManager.NavigateTo("/application");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving application: {ex.Message}");
+        }
     }
 }
