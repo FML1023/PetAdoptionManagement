@@ -6,44 +6,46 @@
 
 <PageTitle>Spotlight Details</PageTitle>
 
-<div class="container mt-5" style="font-family: 'Poppins', sans-serif; background: #fff8e1; padding: 2rem; border-radius: 15px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
-    <!-- Back to Spotlights List Button -->
-    <a class="btn btn-outline-primary mb-4" href="/spotlights" style="border-radius: 25px;">Back to List</a>
-
-    <!-- Page Title -->
-    <h1 class="mb-3" style="color: #D1913C;">Spotlight Details</h1>
-
+<div class="container mt-5" style="font-family: 'Poppins', sans-serif; background-color: #fff8e1; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+    <h1 class="text-center" style="color: #D1913C;">Spotlight Details</h1>
+    <hr />
     @if (spotlight is null)
     {
-        <p><em>Loading...</em></p>
+        <p class="text-center"><em>Loading...</em></p>
     }
     else
     {
-        <!-- Spotlight Details -->
-        <div class="card shadow-sm" style="background: white; border-radius: 15px; padding: 1.5rem;">
-            <h4 class="text-center mb-4" style="color: #D1913C;">Spotlight Information</h4>
-            <dl class="row">
-                <dt class="col-sm-3">Start Date</dt>
-                <dd class="col-sm-9">@spotlight.StartDate.ToString("yyyy-MM-dd")</dd>
-            </dl>
-            <dl class="row">
-                <dt class="col-sm-3">Reason</dt>
-                <dd class="col-sm-9">@spotlight.Reason</dd>
-            </dl>
-            <dl class="row">
-                <dt class="col-sm-3">Status</dt>
-                <dd class="col-sm-9">@spotlight.Status</dd>
-            </dl>
-            <dl class="row">
-                <dt class="col-sm-3">Pet ID</dt>
-                <dd class="col-sm-9">@spotlight.PetId</dd>
-            </dl>
+        <dl class="row">
+            <dt class="col-sm-3">Start Date</dt>
+            <dd class="col-sm-9">@spotlight.StartDate.ToString("yyyy-MM-dd")</dd>
 
-            <!-- Edit and Back Buttons -->
-            <div class="text-center mt-4">
-                <a class="btn btn-success w-100" href="@($"/spotlights/edit?id={spotlight.Id}")" style="border-radius: 25px;">Edit Spotlight</a>
-                <a class="btn btn-outline-primary w-100 mt-2" href="/spotlights" style="border-radius: 25px;">Back to List</a>
-            </div>
+            <dt class="col-sm-3">Reason</dt>
+            <dd class="col-sm-9">@spotlight.Reason</dd>
+
+            <dt class="col-sm-3">Status</dt>
+            <dd class="col-sm-9">
+                @if (spotlight.Status)
+                {
+                    <span class="badge bg-success">Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger">Inactive</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Pet ID</dt>
+            <dd class="col-sm-9">@spotlight.PetId</dd>
+
+            @if (spotlight.Pet is not null)
+            {
+                <dt class="col-sm-3">Pet Name</dt>
+                <dd class="col-sm-9">@spotlight.Pet.Name</dd>
+            }
+        </dl>
+        <div class="text-center mt-4">
+            <a href="@($"/spotlights/edit?id={spotlight.Id}")" class="btn btn-warning">Edit</a>
+            <a href="/spotlights" class="btn btn-outline-primary">Back to List</a>
         </div>
     }
 </div>
@@ -57,7 +59,9 @@
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
-        spotlight = await context.Spotlight.FirstOrDefaultAsync(m => m.Id == Id);
+        spotlight = await context.Spotlight
+            .Include(s => s.Pet) // Include pet details if available
+            .FirstOrDefaultAsync(m => m.Id == Id);
 
         if (spotlight is null)
         {

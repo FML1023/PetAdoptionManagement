@@ -13,12 +13,7 @@ namespace PetAdoptionManagement.Components.Domain
         public string? PhotoPath { get; set; }
         public string UserId { get; set; } = string.Empty;
         public virtual PetAdoptionManagementUser? User { get; set; }
-        public int SpotlightId { get; set; }
-        public ReviewStatusEnum ReviewStatus { get; set; } = ReviewStatusEnum.Pending; 
-
+        public virtual Spotlight? Spotlight { get; set; }
+        public ReviewStatusEnum ReviewStatus { get; set; } = ReviewStatusEnum.Pending;
     }
 }
-
-
-
-  

@@ -7,14 +7,53 @@
 
 @inject UserManager<PetAdoptionManagementUser> UserManager
 @inject IdentityRedirectManager RedirectManager
+@inject NavigationManager NavigationManager
 
-<PageTitle>Confirm email</PageTitle>
+<PageTitle>Confirm Email</PageTitle>
 
-<h1>Confirm email</h1>
-<StatusMessage Message="@statusMessage" />
+<div class="container-fluid p-0"
+     style="font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to bottom, #FFD194, #D1913C);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 50px;">
+
+    <div class="container" style="max-width: 600px; width: 100%;">
+        <div class="card shadow-lg" style="border-radius: 15px; background: #fff8e1; padding: 2rem;">
+            <h1 class="text-center" style="color: #D1913C;">Email Confirmation</h1>
+            <p class="text-center text-muted">
+                We're verifying your email...
+            </p>
+
+            @if (!string.IsNullOrEmpty(statusMessage))
+            {
+                <div class="alert @(isSuccess ? "alert-success" : "alert-danger") text-center mt-3"
+                     style="border-radius: 15px; padding: 1rem;">
+                    <strong>@statusMessage</strong>
+                </div>
+            }
+
+            @if (isSuccess)
+            {
+                <div class="text-center mt-4">
+                    <p class="text-muted">Redirecting you to the login page...</p>
+                </div>
+            }
+            else
+            {
+                <div class="text-center mt-4">
+                    <a href="/Account/Login" class="btn btn-primary" style="border-radius: 25px;">Go to Login</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
 
 @code {
     private string? statusMessage;
+    private bool isSuccess;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -30,6 +69,7 @@
         if (UserId is null || Code is null)
         {
             RedirectManager.RedirectTo("");
+            return;
         }
 
         var user = await UserManager.FindByIdAsync(UserId);
@@ -37,12 +77,23 @@
         {
             HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
             statusMessage = $"Error loading user with ID {UserId}";
+            isSuccess = false;
         }
         else
         {
             var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Code));
             var result = await UserManager.ConfirmEmailAsync(user, code);
-            statusMessage = result.Succeeded ? "Thank you for confirming your email." : "Error confirming your email.";
+            isSuccess = result.Succeeded;
+            statusMessage = result.Succeeded ?
+                "Thank you for confirming your email. Redirecting to login page..." :
+                "Error confirming your email.";
+        }
+
+        if (isSuccess)
+        {
+            // Delay and navigate to the login page
+            await Task.Delay(1000);
+            NavigationManager.NavigateTo("/Account/Login");
         }
     }
 }

@@ -7,63 +7,70 @@
 
 <PageTitle>Apply to Adopt</PageTitle>
 
-<div class="container mt-5" style="font-family: 'Poppins', sans-serif;">
-    <div class="card shadow-sm" style="border-radius: 15px; background: #fff8e1; padding: 2rem; max-width: 800px; margin: 0 auto;">
-        <h1 class="mb-4" style="color: #D1913C;">Adoption Application</h1>
+<div class="container-fluid p-0" style="font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to bottom, #FFD194, #D1913C);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 0;">
+    <div class="container" style="max-width: 600px; width: 100%; margin-left: 675px;">
+        <div class="card shadow-sm" style="border-radius: 15px; background: #fff8e1; padding: 2rem; max-width: 800px; margin: 0 auto;">
+            <h1 class="mb-4" style="color: #D1913C;">Adoption Application</h1>
 
-        <!-- Debugging Message -->
-        @if (Application != null)
-        {
-            <EditForm Model="@Application" OnValidSubmit="SubmitApplication">
-                <DataAnnotationsValidator />
-                <ValidationSummary class="text-danger" />
+            @if (Application != null)
+            {
+                <EditForm Model="@Application" OnValidSubmit="SubmitApplication">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" />
 
-                <div class="mb-3">
-                    <label for="petName" class="form-label">Pet Name:</label>
-                    <p class="form-control-plaintext">@Pet?.Name</p>
-                </div>
+                    <!-- PetName -->
+                    <div class="mb-3">
+                        <label for="petName" class="form-label">Pet Name:</label>
+                        <p class="form-control-plaintext">@Pet?.Name</p>
+                    </div>
 
+                    <!-- Reason for Adoption -->
+                    <div class="mb-3">
+                        <label for="reason">Reason for Adoption:</label>
+                        <InputTextArea id="reason" @bind-Value="Application.ReasonForAdoption" class="form-control" />
+                        <ValidationMessage For="() => Application.ReasonForAdoption" />
+                    </div>
 
-                <!-- Reason for Adoption -->
-                <div class="mb-3">
-                    <label for="reason">Reason for Adoption:</label>
-                    <InputTextArea id="reason" @bind-Value="Application.ReasonForAdoption" class="form-control" />
-                    <ValidationMessage For="() => Application.ReasonForAdoption" />
-                </div>
+                    <!-- Living Situation -->
+                    <div class="mb-3">
+                        <label for="livingSituation" class="form-label">Living Situation:</label>
+                        <InputText id="livingSituation" @bind-Value="Application.LivingSituation" class="form-control" placeholder="Describe your home environment" />
+                        <ValidationMessage For="() => Application.LivingSituation" class="text-danger" />
+                    </div>
 
-                <!-- Living Situation -->
-                <div class="mb-3">
-                    <label for="livingSituation" class="form-label">Living Situation:</label>
-                    <InputText id="livingSituation" @bind-Value="Application.LivingSituation" class="form-control" placeholder="Describe your home environment" />
-                    <ValidationMessage For="() => Application.LivingSituation" class="text-danger" />
-                </div>
+                    <!-- Other Pets -->
+                    <div class="mb-3">
+                        <label for="otherPets" class="form-label">Do you have other pets?</label>
+                        <InputText id="otherPets" @bind-Value="Application.OtherPets" class="form-control" placeholder="List any pets you currently own" />
+                        <ValidationMessage For="() => Application.OtherPets" class="text-danger" />
+                    </div>
 
-                <!-- Other Pets -->
-                <div class="mb-3">
-                    <label for="otherPets" class="form-label">Do you have other pets?</label>
-                    <InputText id="otherPets" @bind-Value="Application.OtherPets" class="form-control" placeholder="List any pets you currently own" />
-                    <ValidationMessage For="() => Application.OtherPets" class="text-danger" />
-                </div>
+                    <!-- Pet Experience -->
+                    <div class="mb-3">
+                        <label for="experience" class="form-label">Experience with Pets:</label>
+                        <InputText id="experience" @bind-Value="Application.PetExperience" class="form-control" placeholder="Describe your past experience with pets" />
+                        <ValidationMessage For="() => Application.PetExperience" class="text-danger" />
+                    </div>
 
-                <!-- Pet Experience -->
-                <div class="mb-3">
-                    <label for="experience" class="form-label">Experience with Pets:</label>
-                    <InputText id="experience" @bind-Value="Application.PetExperience" class="form-control" placeholder="Describe your past experience with pets" />
-                    <ValidationMessage For="() => Application.PetExperience" class="text-danger" />
-                </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </EditForm>
+            }
+            else
+            {
+                <p>Loading application...</p>
+            }
 
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </EditForm>
-        }
-        else
-        {
-            <p>Loading application...</p>
-        }
-
-    <div class="text-center mt-4">
-        <a href="/pets" class="btn btn-outline-secondary" style="border-radius: 25px;">Back to Pets</a>
+            <div class="text-center mt-4">
+                 <a href="/pets" class="btn btn-outline-secondary" style="border-radius: 25px;">Back to Pets</a>
+            </div>
+        </div>
     </div>
-</div>
 </div>
 
 @code {
@@ -76,8 +83,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine("Initializing Adoption Application...");
-        Console.WriteLine($"Received Pet ID: {Id}"); // ✅ Debugging
 
         using var context = await DbFactory.CreateDbContextAsync();
         Pet = await context.Pet.FirstOrDefaultAsync(p => p.Id == Id);
@@ -147,7 +152,7 @@
             context.Application.Add(Application);
             await context.SaveChangesAsync();
             Console.WriteLine("Application successfully submitted!");
-            NavigationManager.NavigateTo("/application");
+            NavigationManager.NavigateTo("/application/details");
         }
         catch (Exception ex)
         {

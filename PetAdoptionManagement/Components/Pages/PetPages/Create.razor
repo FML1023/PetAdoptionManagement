@@ -5,91 +5,109 @@
 @inject NavigationManager NavigationManager
 @inject UserManager<PetAdoptionManagementUser> UserManager
 
-
 <PageTitle>Create Pet</PageTitle>
 
-<div class="container mt-5" style="font-family: 'Poppins', sans-serif;">
-    <div class="card shadow-sm" style="border-radius: 15px; background: #fff8e1; padding: 2rem; max-width: 800px; margin: 0 auto;">
-        <h1 class="mb-4" style="color: #D1913C;">Create Pet</h1>
+@if (IsAuthorized)
+{
 
-        <EditForm method="post" Model="Pet" OnValidSubmit="AddPet" FormName="createPet">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
+<div class="container-fluid p-0" style="font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to bottom, #FFD194, #D1913C);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 0;">
+    <div class="container mt-5" style="font-family: 'Poppins', sans-serif;">
+            <div class="card shadow-sm" style="border-radius: 15px; background-color: #fff8e1;  padding: 2rem; max-width: 800px; margin: 0 auto;">
+            <h1 class="mb-4" style="color: #D1913C;">Create Pet</h1>
 
-            <!-- Name Field -->
-            <div class="mb-3">
-                <label for="name" class="form-label">Name:</label>
-                <InputText id="name" @bind-Value="Pet.Name" class="form-control" placeholder="Enter Pet Name" />
-                <ValidationMessage For="() => Pet.Name" class="text-danger" />
-            </div>
+            <EditForm Model="Pet" OnValidSubmit="AddPet">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" role="alert" />
 
-            <!-- Species Field -->
-            <div class="mb-3">
-                <label for="species" class="form-label">Species:</label>
-                <InputText id="species" @bind-Value="Pet.Species" class="form-control" placeholder="Enter Pet Species" />
-                <ValidationMessage For="() => Pet.Species" class="text-danger" />
-            </div>
+                <!-- Name Field -->
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name:</label>
+                    <InputText id="name" @bind-Value="Pet.Name" class="form-control" placeholder="Enter Pet Name" />
+                    <ValidationMessage For="() => Pet.Name" class="text-danger" />
+                </div>
 
-            <!-- Breed Field -->
-            <div class="mb-3">
-                <label for="breed" class="form-label">Breed:</label>
-                <InputText id="breed" @bind-Value="Pet.Breed" class="form-control" placeholder="Enter Pet Breed" />
-                <ValidationMessage For="() => Pet.Breed" class="text-danger" />
-            </div>
+                <!-- Species Field -->
+                <div class="mb-3">
+                    <label for="species" class="form-label">Species:</label>
+                    <InputText id="species" @bind-Value="Pet.Species" class="form-control" placeholder="Enter Pet Species" />
+                    <ValidationMessage For="() => Pet.Species" class="text-danger" />
+                </div>
 
-            <!-- Age Field -->
-            <div class="mb-3">
-                <label for="age" class="form-label">Age:</label>
-                <InputNumber id="age" @bind-Value="Pet.Age" class="form-control" placeholder="Enter Pet Age" />
-                <ValidationMessage For="() => Pet.Age" class="text-danger" />
-            </div>
+                <!-- Breed Field -->
+                <div class="mb-3">
+                    <label for="breed" class="form-label">Breed:</label>
+                    <InputText id="breed" @bind-Value="Pet.Breed" class="form-control" placeholder="Enter Pet Breed" />
+                    <ValidationMessage For="() => Pet.Breed" class="text-danger" />
+                </div>
 
-            <!-- Description Field -->
-            <div class="mb-3">
-                <label for="description" class="form-label">Description:</label>
-                <InputText id="description" @bind-Value="Pet.Description" class="form-control" placeholder="Enter a brief description" />
-                <ValidationMessage For="() => Pet.Description" class="text-danger" />
-            </div>
+                <!-- Age Field -->
+                <div class="mb-3">
+                    <label for="age" class="form-label">Age:</label>
+                    <InputNumber id="age" @bind-Value="Pet.Age" class="form-control" placeholder="Enter Pet Age" />
+                    <ValidationMessage For="() => Pet.Age" class="text-danger" />
+                </div>
 
-            <!-- Status Field -->
-            <div class="mb-3">
-                <label for="status" class="form-label">Status:</label>
-                <InputCheckbox id="status" @bind-Value="Pet.Status" class="form-check-input" />
-                <ValidationMessage For="() => Pet.Status" class="text-danger" />
-            </div>
+                <!-- Description Field -->
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description:</label>
+                    <InputText id="description" @bind-Value="Pet.Description" class="form-control" placeholder="Enter a brief description" />
+                    <ValidationMessage For="() => Pet.Description" class="text-danger" />
+                </div>
 
-            <!-- SpotlightId Field -->
-            <div class="mb-3">
-                <label for="spotlightid" class="form-label">SpotlightId:</label>
-                <InputNumber id="spotlightid" @bind-Value="Pet.SpotlightId" class="form-control" placeholder="Enter Spotlight ID" />
-                <ValidationMessage For="() => Pet.SpotlightId" class="text-danger" />
-            </div>
+                <!-- Status Field -->
+                <div class="mb-3">
+                    <label for="status" class="form-label">Status:</label>
+                    <InputCheckbox id="status" @bind-Value="Pet.Status" class="form-check-input" />
+                    <ValidationMessage For="() => Pet.Status" class="text-danger" />
+                </div>
 
-            <!-- Photos Field -->
-            <div class="mb-3">
-                <label for="photo" class="form-label">Upload Photo</label>
-                <InputFile id="photo" OnChange="HandleFileUpload" />
-                @if (!string.IsNullOrEmpty(PhotoPath))
+                <!-- Photos Field -->
+                <div class="mb-3">
+                    <label for="photo" class="form-label">Upload Photo</label>
+                    <InputFile id="photo" OnChange="HandleFileUpload" />
+                    @if (!string.IsNullOrEmpty(PhotoPath))
+                    {
+                        <img src="@PhotoPath" alt="Uploaded Photo" style="max-width: 100%; max-height: 200px; margin-top: 1rem;" />
+                    }
+                </div>
+
+                @if (!string.IsNullOrEmpty(SuccessMessage))
                 {
-                    <img src="@PhotoPath" alt="Uploaded Photo" style="max-width: 100%; max-height: 200px; margin-top: 1rem;" />
+                    <div class="alert alert-success mt-3" style="border-radius: 15px;">
+                        🎉 @SuccessMessage
+                    </div>
                 }
-            </div>
 
-            <button type="submit" class="btn btn-primary" style="width: 100%; border-radius: 25px;">Create Pet</button>
-        </EditForm>
-    </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; border-radius: 25px;">Create Pet</button>
+            </EditForm>
+        </div>
 
-    <div class="text-center mt-4">
-        <a href="/pets" class="btn btn-outline-secondary" style="border-radius: 25px;">Back to List</a>
+        <div class="text-center mt-4">
+            <a href="/pets" class="btn btn-outline-secondary" style="border-radius: 25px;">Back to List</a>
+        </div>
     </div>
 </div>
+}
+else
+{
+    <!-- Prevents unauthorized users from seeing the form -->
+    <div class="text-center mt-5">
+        <h2>Redirecting to Login...</h2>
+    </div>
+}
 
 @code {
-    [SupplyParameterFromForm]
     private Pet Pet { get; set; } = new Pet();
-
-    private string UserId { get; set; }  
+    private string UserId { get; set; }
     private string? PhotoPath;
+    private bool IsAuthorized = false; // Determines if user is logged in
+    private string? SuccessMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -102,16 +120,19 @@
 
             if (!string.IsNullOrEmpty(appUser?.Id))
             {
-                UserId = appUser.Id.Trim();  // Trim to prevent accidental spaces
+                UserId = appUser.Id.Trim(); // Trim to prevent accidental spaces
+                IsAuthorized = true; // User is logged in
             }
-            else
-            {
-                Console.WriteLine("User Id is not available.");
-            }
+        }
+
+        // Redirect unauthenticated users to login
+        if (!IsAuthorized)
+        {
+            NavigationManager.NavigateTo("/Account/Login");
         }
     }
 
-        private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
     {
         var file = e.File;
         if (file != null && file.ContentType.StartsWith("image/"))
@@ -132,10 +153,9 @@
 
     private async Task AddPet()
     {
-        if (string.IsNullOrEmpty(UserId))
+        if (!IsAuthorized)
         {
-            Console.WriteLine("User is not authenticated or UserId not found.");
-            NavigationManager.NavigateTo("/pets");
+            NavigationManager.NavigateTo("/Account/Login");
             return;
         }
 
@@ -149,9 +169,13 @@
 
         try
         {
-
             context.Pet.Add(Pet);
             await context.SaveChangesAsync();
+
+            SuccessMessage = "Pet details updated successfully!";
+            StateHasChanged();
+
+            await Task.Delay(1000);
             NavigationManager.NavigateTo("/pets");
         }
         catch (Exception ex)
@@ -159,5 +183,5 @@
             Console.WriteLine($"Error saving pet: {ex.Message}");
         }
     }
-
 }
+

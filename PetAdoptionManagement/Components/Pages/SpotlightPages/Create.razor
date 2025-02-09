@@ -6,60 +6,56 @@
 
 <PageTitle>Create Spotlight</PageTitle>
 
-<div class="container mt-5" style="font-family: 'Poppins', sans-serif; background: #fff8e1; padding: 2rem; border-radius: 15px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
-    <!-- Back to Spotlights List Button -->
-    <a class="btn btn-outline-primary mb-4" href="/spotlights" style="border-radius: 25px;">Back to List</a>
+<div class="container mt-5" style="font-family: 'Poppins', sans-serif;">
+    <!-- Card Container with Limited Width -->
+    <div class="card shadow-sm" style="border-radius: 15px; background: #fff8e1; padding: 2rem; max-width: 800px; margin: 0 auto;">
+        <h1 class="mb-4" style="color: #D1913C;">Create Spotlight</h1>
 
-    <!-- Page Title -->
-    <h1 class="mb-3" style="color: #D1913C;">Create Spotlight</h1>
-    <p class="text-muted">Create a new spotlight for a pet with the details below.</p>
+        <EditForm method="post" Model="Spotlight" OnValidSubmit="AddSpotlight" FormName="createSpotlight">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
 
-    <div class="row">
-        <div class="col-md-6 mx-auto">
-            <EditForm method="post" Model="Spotlight" OnValidSubmit="AddSpotlight" FormName="create" Enhance>
-                <DataAnnotationsValidator />
-                <ValidationSummary class="text-danger" role="alert" />
+            <!-- Start Date Field -->
+            <div class="mb-3">
+                <label for="startdate" class="form-label">Start Date:</label>
+                <InputDate id="startdate" @bind-Value="Spotlight.StartDate" class="form-control" />
+                <ValidationMessage For="() => Spotlight.StartDate" class="text-danger" />
+            </div>
 
-                <!-- Start Date -->
-                <div class="mb-3">
-                    <label for="startdate" class="form-label">Start Date:</label>
-                    <InputDate id="startdate" @bind-Value="Spotlight.StartDate" class="form-control" />
-                    <ValidationMessage For="() => Spotlight.StartDate" class="text-danger" />
-                </div>
+            <!-- Reason Field -->
+            <div class="mb-3">
+                <label for="reason" class="form-label">Reason:</label>
+                <InputText id="reason" @bind-Value="Spotlight.Reason" class="form-control" placeholder="Enter Reason for Spotlight" />
+                <ValidationMessage For="() => Spotlight.Reason" class="text-danger" />
+            </div>
 
-                <!-- Reason -->
-                <div class="mb-3">
-                    <label for="reason" class="form-label">Reason:</label>
-                    <InputText id="reason" @bind-Value="Spotlight.Reason" class="form-control" />
-                    <ValidationMessage For="() => Spotlight.Reason" class="text-danger" />
-                </div>
+            <!-- Status Field -->
+            <div class="mb-3">
+                <label for="status" class="form-label">Status:</label>
+                <InputCheckbox id="status" @bind-Value="Spotlight.Status" class="form-check-input" />
+                <ValidationMessage For="() => Spotlight.Status" class="text-danger" />
+            </div>
 
-                <!-- Status -->
-                <div class="mb-3">
-                    <label for="status" class="form-label">Status:</label>
-                    <InputCheckbox id="status" @bind-Value="Spotlight.Status" class="form-check-input" />
-                    <ValidationMessage For="() => Spotlight.Status" class="text-danger" />
-                </div>
+            <!-- Pet ID Field -->
+            <div class="mb-3">
+                <label for="petid" class="form-label">Pet ID:</label>
+                <InputNumber id="petid" @bind-Value="Spotlight.PetId" class="form-control" placeholder="Enter Pet ID" />
+                <ValidationMessage For="() => Spotlight.PetId" class="text-danger" />
+            </div>
 
-                <!-- PetId -->
-                <div class="mb-3">
-                    <label for="petid" class="form-label">Pet ID:</label>
-                    <InputNumber id="petid" @bind-Value="Spotlight.PetId" class="form-control" />
-                    <ValidationMessage For="() => Spotlight.PetId" class="text-danger" />
-                </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; border-radius: 25px;">Create Spotlight</button>
+        </EditForm>
+    </div>
 
-                <!-- Submit Button -->
-                <button type="submit" class="btn btn-primary w-100" style="border-radius: 25px;">Create Spotlight</button>
-            </EditForm>
-        </div>
+    <div class="text-center mt-4">
+        <a href="/spotlights" class="btn btn-outline-secondary" style="border-radius: 25px;">Back to List</a>
     </div>
 </div>
 
 @code {
     [SupplyParameterFromForm]
-    private Spotlight Spotlight { get; set; } = new();
+    private Spotlight Spotlight { get; set; } = new Spotlight();
 
-    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task AddSpotlight()
     {
         using var context = DbFactory.CreateDbContext();

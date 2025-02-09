@@ -254,9 +254,6 @@ namespace PetAdoptionManagement.Migrations
                     b.Property<string>("Species")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("SpotlightId")
-                        .HasColumnType("int");
-
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
 
@@ -282,9 +279,6 @@ namespace PetAdoptionManagement.Migrations
                     b.Property<int>("PetId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("PetId1")
-                        .HasColumnType("int");
-
                     b.Property<string>("Reason")
                         .HasColumnType("nvarchar(max)");
 
@@ -296,7 +290,8 @@ namespace PetAdoptionManagement.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PetId1");
+                    b.HasIndex("PetId")
+                        .IsUnique();
 
                     b.ToTable("Spotlight");
                 });
@@ -410,7 +405,7 @@ namespace PetAdoptionManagement.Migrations
                         {
                             Id = "3781efa7-66dc-47f0-860f-e506d04102e4",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "6fa527dd-c54d-4b3d-b782-fd309bbbef69",
+                            ConcurrencyStamp = "9831756a-bfd6-4712-ae47-201a7441f447",
                             Email = "admin@localhost.com",
                             EmailConfirmed = true,
                             FirstName = "Admin",
@@ -418,9 +413,9 @@ namespace PetAdoptionManagement.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@LOCALHOST.COM",
                             NormalizedUserName = "ADMIN@LOCALHOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEJT+y7EeFo2a5128ZbTjYx3Z7MlhC1/xW0Ftb2GrUJdz1iRTMjEZDyeC9hjNxH+B4A==",
+                            PasswordHash = "AQAAAAIAAYagAAAAENZLDtQoaYXQ2rUPwrPY3iXfV7J2Twahp0KAwWGLJw41EoRZI27DMp7R0bHOMxDvvw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "76df1067-4a34-4e74-81b8-639c1b02fd3b",
+                            SecurityStamp = "465b2346-8bfa-4ddf-8c5b-829acee659c0",
                             TwoFactorEnabled = false,
                             UserName = "admin@localhost.com"
                         });
@@ -510,10 +505,17 @@ namespace PetAdoptionManagement.Migrations
             modelBuilder.Entity("PetAdoptionManagement.Components.Domain.Spotlight", b =>
                 {
                     b.HasOne("PetAdoptionManagement.Components.Domain.Pet", "Pet")
-                        .WithMany()
-                        .HasForeignKey("PetId1");
+                        .WithOne("Spotlight")
+                        .HasForeignKey("PetAdoptionManagement.Components.Domain.Spotlight", "PetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Pet");
+                });
+
+            modelBuilder.Entity("PetAdoptionManagement.Components.Domain.Pet", b =>
+                {
+                    b.Navigation("Spotlight");
                 });
 #pragma warning restore 612, 618
         }

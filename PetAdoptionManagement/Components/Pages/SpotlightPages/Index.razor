@@ -2,23 +2,28 @@
 @using Microsoft.EntityFrameworkCore
 @using PetAdoptionManagement.Components.Domain
 @using PetAdoptionManagement.Data
+@using Microsoft.AspNetCore.Components.Authorization
 @implements IAsyncDisposable
 @inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Pet Spotlight</PageTitle>
 
 <div class="container mt-5" style="font-family: 'Poppins', sans-serif; background: #fff8e1; padding: 2rem; border-radius: 15px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
-    <!-- Back to Home Button -->
+    <!-- Back to Menu Button -->
     <a class="btn btn-outline-primary mb-4" href="/" style="border-radius: 25px;">Back to Home</a>
 
     <!-- Page Title -->
     <h1 class="mb-3" style="color: #D1913C;">Pet Spotlight</h1>
     <p class="text-muted">Highlight special pets and provide reasons for their spotlight status.</p>
 
-    <!-- Create New Button -->
-    <p>
-        <a href="/spotlights/create" class="btn btn-primary" style="border-radius: 25px;">Create New</a>
-    </p>
+    <!-- Create New Button (Admin Only) -->
+    @if (IsAdmin)
+    {
+        <p>
+            <a href="/spotlights/create" class="btn btn-primary" style="border-radius: 25px;">Create New</a>
+        </p>
+    }
 
     @if (spotlights != null && spotlights.Any())
     {
@@ -29,18 +34,28 @@
                 <div class="col">
                     <div class="card shadow-sm" style="border-radius: 15px; background: #fff;">
                         <!-- Image Section -->
-                        <img src="placeholder.jpg" alt="Spotlight Pet" class="card-img-top" style="height: 200px; object-fit: cover; border-top-left-radius: 15px; border-top-right-radius: 15px;" />
+                        <img src="@(spotlight.Pet?.PhotoPath ?? "placeholder.jpg")" alt="Spotlight Pet" class="card-img-top"
+                             style="height: 200px; object-fit: cover; border-top-left-radius: 15px; border-top-right-radius: 15px;" />
 
                         <div class="card-body">
                             <h5 class="card-title" style="color: #D1913C;">@spotlight.Reason</h5>
                             <p class="card-text"><strong>Start Date:</strong> @spotlight.StartDate.ToString("yyyy-MM-dd")</p>
-                            <p class="card-text"><strong>Status:</strong> @spotlight.Status</p>
-                            <p class="card-text"><strong>Pet ID:</strong> @spotlight.PetId</p>
-                            <div class="d-flex justify-content-between">
+                            <p class="card-text"><strong>Status:</strong> @(spotlight.Status ? "Active" : "Inactive")</p>
+                            <p class="card-text"><strong>Pet:</strong> @spotlight.Pet?.Name (@spotlight.Pet?.Species)</p>
+
+                            <!-- Edit and Delete Buttons (Admin Only) -->
+                            @if (IsAdmin)
+                            {
+                                <div class="d-flex justify-content-between">
+                                    <a href="@($"spotlights/details?id={spotlight.Id}")" class="btn btn-outline-primary btn-sm" style="border-radius: 25px;">Details</a>
+                                    <a href="@($"spotlights/edit?id={spotlight.Id}")" class="btn btn-success btn-sm" style="border-radius: 25px;">Edit</a>
+                                    <a href="@($"spotlights/delete?id={spotlight.Id}")" class="btn btn-danger btn-sm" style="border-radius: 25px;">Delete</a>
+                                </div>
+                            }
+                            else
+                            {
                                 <a href="@($"spotlights/details?id={spotlight.Id}")" class="btn btn-outline-primary btn-sm" style="border-radius: 25px;">Details</a>
-                                <a href="@($"spotlights/edit?id={spotlight.Id}")" class="btn btn-success btn-sm" style="border-radius: 25px;">Edit</a>
-                                <a href="@($"spotlights/delete?id={spotlight.Id}")" class="btn btn-danger btn-sm" style="border-radius: 25px;">Delete</a>
-                            </div>
+                            }
                         </div>
                     </div>
                 </div>
@@ -58,11 +73,22 @@
 
 @code {
     private List<Spotlight> spotlights = new();
+    private bool IsAdmin = false;
 
     protected override async Task OnInitializedAsync()
     {
-        context = DbFactory.CreateDbContext();
-        spotlights = await context.Spotlight.ToListAsync(); // Fetch spotlight data
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        // Check if the user is authenticated and has the "Administrator" role
+        IsAdmin = user.Identity != null && user.Identity.IsAuthenticated && user.IsInRole("Administrator");
+
+        using var context = DbFactory.CreateDbContext();
+
+        // Fetch spotlights based on user role
+        spotlights = IsAdmin
+            ? await context.Spotlight.Include(s => s.Pet).ToListAsync() // Admin sees all spotlights
+            : await context.Spotlight.Include(s => s.Pet).Where(s => s.Status).ToListAsync(); // Users see only active spotlights
     }
 
     private PetAdoptionManagementContext context = default!;

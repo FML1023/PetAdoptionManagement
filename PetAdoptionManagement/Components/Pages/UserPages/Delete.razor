@@ -76,6 +76,7 @@
                 }
 
                 <EditForm Model="@user" method="post" OnValidSubmit="DeleteUser" FormName="deleteUserForm">
+                    <AntiforgeryToken />
                     <div class="d-flex justify-content-between mt-4">
                         <a href="/users/details" class="btn btn-outline-secondary px-5 py-2" style="border-radius: 25px;">Cancel</a>
                         <button type="submit" class="btn btn-danger px-5 py-2" style="border-radius: 25px;">Delete Account</button>
@@ -102,12 +103,12 @@
 
         if (currentUser.Identity == null || !currentUser.Identity.IsAuthenticated)
         {
-            NavigationManager.NavigateTo("/login", forceLoad: true);
+            NavigationManager.NavigateTo("/Account/Login", forceLoad: true);
             return;
         }
 
         var email = currentUser.Identity.Name;
-        var isAdmin = currentUser.IsInRole("Admin");
+        var isAdmin = currentUser.IsInRole("Administrator");
 
         using var context = await DbFactory.CreateDbContextAsync();
         user = await context.User.FirstOrDefaultAsync(m => m.Id == Id);

@@ -185,7 +185,7 @@
 
         if (user.Identity is null || !user.Identity.IsAuthenticated || !user.IsInRole("Administrator"))
         {
-            Navigation.NavigateTo("/login", forceLoad: true);
+            Navigation.NavigateTo("/Account/Login", forceLoad: true);
             return;
         }
 

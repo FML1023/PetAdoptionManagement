@@ -1,89 +1,127 @@
 ﻿@page "/pets/edit"
-@using Microsoft.EntityFrameworkCore
-@using PetAdoptionManagement.Components.Domain
+@rendermode InteractiveServer
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject UserManager<PetAdoptionManagementUser> UserManager
 
 <PageTitle>Edit Pet</PageTitle>
 
-<div class="container mt-5" style="font-family: 'Poppins', sans-serif;">
-    <!-- Card Container with Limited Width -->
-    <div class="card shadow-sm" style="border-radius: 15px; background: #fff8e1; padding: 2rem; max-width: 800px; margin: 0 auto;">
-        <h1 class="mb-4" style="color: #D1913C;">Edit Pet</h1>
+@if (IsAuthorized)
+{
+    <div class="container-fluid p-0" style="font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to bottom, #FFD194, #D1913C);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 0;">
+        <div class="container" style="max-width: 600px; width: 100%; margin-left: 675px;">
+        <div class="card shadow-sm" style="border-radius: 15px; background: #fff8e1; padding: 2rem; max-width: 800px; margin: 0 auto;">
+            <h1 class="mb-4" style="color: #D1913C;">Edit Pet</h1>
 
-        @if (Pet is null)
-        {
-            <p><em>Loading...</em></p>
-        }
-        else
-        {
-            <EditForm method="post" Model="Pet" OnValidSubmit="UpdatePet" FormName="edit">
-                <DataAnnotationsValidator />
-                <ValidationSummary role="alert" />
-                <input type="hidden" name="Pet.Id" value="@Pet.Id" />
+            @if (Pet is null)
+            {
+                <p class="text-danger">Pet not found. Redirecting...</p>
+            }
+            else
+            {
+                <EditForm Model="Pet" OnValidSubmit="UpdatePet">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary role="alert" />
 
-                <!-- Name Field -->
-                <div class="mb-3">
-                    <label for="name" class="form-label">Name:</label>
-                    <InputText id="name" @bind-Value="Pet.Name" class="form-control" placeholder="Enter Pet Name" />
-                    <ValidationMessage For="() => Pet.Name" class="text-danger" />
+                    <!-- Name Field -->
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name:</label>
+                        <InputText id="name" @bind-Value="Pet.Name" class="form-control" placeholder="Enter Pet Name" />
+                        <ValidationMessage For="() => Pet.Name" class="text-danger" />
+                    </div>
+
+                    <!-- Species Field -->
+                    <div class="mb-3">
+                        <label for="species" class="form-label">Species:</label>
+                        <InputText id="species" @bind-Value="Pet.Species" class="form-control" placeholder="Enter Pet Species" />
+                        <ValidationMessage For="() => Pet.Species" class="text-danger" />
+                    </div>
+
+                    <!-- Breed Field -->
+                    <div class="mb-3">
+                        <label for="breed" class="form-label">Breed:</label>
+                        <InputText id="breed" @bind-Value="Pet.Breed" class="form-control" placeholder="Enter Pet Breed" />
+                        <ValidationMessage For="() => Pet.Breed" class="text-danger" />
+                    </div>
+
+                    <!-- Age Field -->
+                    <div class="mb-3">
+                        <label for="age" class="form-label">Age:</label>
+                        <InputNumber id="age" @bind-Value="Pet.Age" class="form-control" placeholder="Enter Pet Age" />
+                        <ValidationMessage For="() => Pet.Age" class="text-danger" />
+                    </div>
+
+                    <!-- Description Field -->
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description:</label>
+                        <InputText id="description" @bind-Value="Pet.Description" class="form-control" placeholder="Enter a brief description" />
+                        <ValidationMessage For="() => Pet.Description" class="text-danger" />
+                    </div>
+
+                     @if (!string.IsNullOrEmpty(SuccessMessage))
+                        {
+                            <div class="alert alert-success mt-3" style="border-radius: 15px;">
+                                🎉 @SuccessMessage
+                            </div>
+                        }
+                    <button type="submit" class="btn btn-primary" style="width: 100%; border-radius: 25px;">Save Pet</button>
+                </EditForm>
+
+                <div class="text-center mt-4">
+                     <a href="/pets" class="btn btn-outline-secondary" style="border-radius: 25px;">Back to List</a>
                 </div>
-
-                <!-- Species Field -->
-                <div class="mb-3">
-                    <label for="species" class="form-label">Species:</label>
-                    <InputText id="species" @bind-Value="Pet.Species" class="form-control" placeholder="Enter Pet Species" />
-                    <ValidationMessage For="() => Pet.Species" class="text-danger" />
-                </div>
-
-                <!-- Breed Field -->
-                <div class="mb-3">
-                    <label for="breed" class="form-label">Breed:</label>
-                    <InputText id="breed" @bind-Value="Pet.Breed" class="form-control" placeholder="Enter Pet Breed" />
-                    <ValidationMessage For="() => Pet.Breed" class="text-danger" />
-                </div>
-
-                <!-- Age Field -->
-                <div class="mb-3">
-                    <label for="age" class="form-label">Age:</label>
-                    <InputNumber id="age" @bind-Value="Pet.Age" class="form-control" placeholder="Enter Pet Age" />
-                    <ValidationMessage For="() => Pet.Age" class="text-danger" />
-                </div>
-
-                <!-- Description Field -->
-                <div class="mb-3">
-                    <label for="description" class="form-label">Description:</label>
-                    <InputText id="description" @bind-Value="Pet.Description" class="form-control" placeholder="Enter a brief description" />
-                    <ValidationMessage For="() => Pet.Description" class="text-danger" />
-                </div>
-
-                <button type="submit" class="btn btn-primary" style="width: 100%; border-radius: 25px;">Save Pet</button>
-            </EditForm>
-        }
+            }
+            </div>
+        </div>
     </div>
-
-    <div class="text-center mt-4">
-        <a href="/pets" class="btn btn-outline-secondary" style="border-radius: 25px;">Back to List</a>
+}
+else
+{
+    <div class="text-center mt-5">
+        <h2>Redirecting to Login...</h2>
     </div>
-</div>
+}
 
 @code {
     [SupplyParameterFromQuery]
     private int Id { get; set; }
 
-    [SupplyParameterFromForm]
     private Pet? Pet { get; set; }
-    private string? errorMessage;
-
+    private bool IsAuthorized = false;
+    private string? SuccessMessage;
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        // Check if the user is authenticated
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var appUser = await UserManager.GetUserAsync(user);
+
+            // Allow admin or the pet owner to edit
+            IsAuthorized = appUser != null && (user.IsInRole("Administrator") || Pet?.UserId == appUser.Id);
+        }
+
+        if (!IsAuthorized)
+        {
+            NavigationManager.NavigateTo("/Account/Login");
+            return;
+        }
+
         using var context = DbFactory.CreateDbContext();
-        Pet ??= await context.Pet.FirstOrDefaultAsync(m => m.Id == Id);
+        Pet = await context.Pet.FirstOrDefaultAsync(m => m.Id == Id);
 
         if (Pet is null)
         {
-            errorMessage = "Pet not found. It may have been deleted.";
             NavigationManager.NavigateTo("notfound");
         }
     }
@@ -92,12 +130,11 @@
     {
         try
         {
-            using var context = await DbFactory.CreateDbContextAsync();
+            using var context = DbFactory.CreateDbContext();
             var existingPet = await context.Pet.FirstOrDefaultAsync(p => p.Id == Pet.Id);
 
             if (existingPet == null)
             {
-                errorMessage = "Pet not found. It may have been deleted.";
                 return;
             }
 
@@ -108,21 +145,18 @@
             existingPet.Age = Pet.Age;
             existingPet.Description = Pet.Description;
             existingPet.Status = Pet.Status;
-            existingPet.SpotlightId = Pet.SpotlightId;
 
             await context.SaveChangesAsync();
+
+            SuccessMessage = "Pet details updated successfully!";
+            StateHasChanged();
+
+            await Task.Delay(1000);
             NavigationManager.NavigateTo("/pets");
         }
         catch (Exception ex)
         {
-            errorMessage = $"Error updating pet: {ex.Message}";
-            Console.WriteLine(errorMessage);
+            Console.WriteLine($"Error updating pet: {ex.Message}");
         }
-    }
-
-    private bool PetExists(int id)
-    {
-        using var context = DbFactory.CreateDbContext();
-        return context.Pet.Any(e => e.Id == id);
     }
 }

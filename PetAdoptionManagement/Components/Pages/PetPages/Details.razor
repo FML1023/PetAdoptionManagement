@@ -18,9 +18,9 @@
         }
         else
         {
-            <div class="row align-items-center">
-                <!-- Pet Details (Left Side) -->
-                <div class="col-md-6">
+            <div class="row">
+                <!-- Pet Details (Left Side, 70%) -->
+                <div class="col-md-8">
                     <dl class="row">
                         <dt class="col-sm-4 fw-bold" style="color: #333;">Name</dt>
                         <dd class="col-sm-8">@pet.Name</dd>
@@ -74,9 +74,9 @@
                     </div>
                 </div>
 
-                <!-- Pet Image (Right Side) -->
-                <div class="col-md-6 d-flex align-items-center justify-content-center">
-                    <div class="shadow-lg p-3 bg-white rounded" style="max-width: 100%; border-radius: 15px;">
+                <!-- Pet Image (Right Side, 30%) -->
+                <div class="col-md-4 d-flex align-items-center justify-content-center">
+                    <div class="shadow-lg p-3 bg-white rounded" style="border-radius: 15px; max-width: 100%;">
                         <img src="@pet.PhotoPath" alt="Pet Photo" class="img-fluid"
                              style="max-height: 400px; border-radius: 15px; object-fit: cover; width: 100%;" />
                     </div>
@@ -85,7 +85,6 @@
         }
     </div>
 </div>
-
 
 
 @code {

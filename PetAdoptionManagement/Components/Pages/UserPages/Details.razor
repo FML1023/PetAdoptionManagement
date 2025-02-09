@@ -72,7 +72,7 @@
 
         if (currentUser.Identity == null || !currentUser.Identity.IsAuthenticated)
         {
-            NavigationManager.NavigateTo("/login", forceLoad: true);
+            NavigationManager.NavigateTo("/Account/Login", forceLoad: true);
             return;
         }
 

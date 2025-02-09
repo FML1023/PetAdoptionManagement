@@ -1,40 +1,80 @@
 ﻿@page "/pets/delete"
+@rendermode InteractiveServer
 @using Microsoft.EntityFrameworkCore
 @using PetAdoptionManagement.Components.Domain
 @inject IDbContextFactory<PetAdoptionManagement.Data.PetAdoptionManagementContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@inject IJSRuntime JSRuntime
 
-<PageTitle>Delete</PageTitle>
+<PageTitle>Delete Pet</PageTitle>
 
-<div class="container mt-5" style="font-family: 'Poppins', sans-serif; background-color: #fff8e1; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
-    <h1 class="text-center" style="color: #D1913C;">Confirm Delete</h1>
-    <hr />
-    @if (Pet is null)
-    {
-        <p class="text-center"><em>Loading...</em></p>
-    }
-    else
-    {
-        <dl class="row">
-            <dt class="col-sm-3">Name</dt>
-            <dd class="col-sm-9">@Pet.Name</dd>
+@if (IsAuthorized && IsAdmin)
+{    
+<div class="container-fluid p-0" style="font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to bottom, #FFD194, #D1913C);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 0;">
+    <div class="card shadow-sm" style="font-family: 'Poppins', sans-serif; background-color: #fff8e1; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+        <h1 class="text-center text-danger" style="font-weight: bold;">Confirm Delete</h1>
+        <p class="text-center text-muted">Are you sure you want to delete this pet?</p>
+        <hr />
 
-            <!-- Other Fields -->
-        </dl>
-        <div class="text-center mt-4">
-            <form method="post" @formname="DeletePetForm" @onsubmit="HandleSubmit">
-                <!-- Antiforgery Token -->
-                <AntiforgeryToken />
+        @if (Pet is null)
+        {
+            <p class="text-center"><em>Loading...</em></p>
+        }
+        else
+        {
+            <dl class="row text-center text-md-start">
+                <dt class="col-sm-4 text-md-end">Name:</dt>
+                <dd class="col-sm-8">@Pet.Name</dd>
 
-                <!-- Hidden input to pass the Pet ID -->
-                <input type="hidden" name="PetId" value="@Pet?.Id" />
+                <dt class="col-sm-4 text-md-end">Species:</dt>
+                <dd class="col-sm-8">@Pet.Species</dd>
 
-                <button type="submit" class="btn btn-danger">Confirm Delete</button>
-                <a href="/pets" class="btn btn-outline-secondary">Cancel</a>
-            </form>
-        </div>
-    }
+                <dt class="col-sm-4 text-md-end">Breed:</dt>
+                <dd class="col-sm-8">@Pet.Breed</dd>
+
+                <dt class="col-sm-4 text-md-end">Age:</dt>
+                <dd class="col-sm-8">@Pet.Age years</dd>
+            </dl>
+
+            @if (showSuccessMessage)
+            {
+                <div class="alert alert-success mt-3 text-center" style="border-radius: 15px; padding: 1rem;">
+                    🎉 Pet deleted successfully! Redirecting...
+                </div>
+            }
+
+            <!-- Call JavaScript function to delete pet -->
+            <div class="text-center mt-4">
+                <a href="/pets" class="btn btn-outline-secondary px-5 py-2" style="border-radius: 25px;">Cancel</a>
+                <button class="btn btn-danger px-5 py-2" style="border-radius: 25px;" @onclick="DeletePet">Delete Pet</button>
+            </div>
+        }
+    </div>
 </div>
+}
+else if (!IsAdmin && IsAuthorized)
+{
+    <div class="text-center mt-5">
+        <h2 class="text-danger">Access Denied</h2>
+        <p>You are not authorized to delete pets.</p>
+        <a href="/pets" class="btn btn-primary">Go Back</a>
+    </div>
+}
+else
+{
+    <div class="text-center mt-5">
+        <h2>Redirecting to Login...</h2>
+    </div>
+}
 
 @code {
     [Parameter]
@@ -42,41 +82,80 @@
     public int Id { get; set; }
 
     private Pet? Pet { get; set; }
+    private bool IsAuthorized = false;
+    private bool IsAdmin = false;
+    private bool showSuccessMessage = false;
+    private string XsrfToken = ""; // CSRF token storage
 
     protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine($"Fetching pet with Id: {Id}"); // Debug output
-        using var context = DbFactory.CreateDbContext();
-        Pet = await context.Pet.FirstOrDefaultAsync(m => m.Id == Id);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
 
-        if (Pet is null)
+        // Check if the user is authenticated
+        IsAuthorized = user?.Identity?.IsAuthenticated == true;
+
+        if (!IsAuthorized)
         {
-            Console.WriteLine($"Pet with Id: {Id} not found"); // Debug output
-            NavigationManager.NavigateTo("notfound");
+            NavigationManager.NavigateTo("/Account/Login");
+            return;
         }
-    }
 
-    private async Task HandleSubmit()
-    {
-        // Get the pet ID from the hidden input
-        if (Pet is null)
+        // Check if user is an admin
+        IsAdmin = user.IsInRole("Administrator");
+
+        if (!IsAdmin)
         {
             NavigationManager.NavigateTo("/pets");
             return;
         }
 
+        // Fetch the pet
+        Console.WriteLine($"Fetching pet with Id: {Id}");
         using var context = DbFactory.CreateDbContext();
-        var petToDelete = await context.Pet.FirstOrDefaultAsync(p => p.Id == Pet.Id);
+        Pet = await context.Pet.FirstOrDefaultAsync(m => m.Id == Id);
 
-        if (petToDelete is null)
+        if (Pet is null)
         {
+            Console.WriteLine($"Pet with Id: {Id} not found");
             NavigationManager.NavigateTo("notfound");
-            return;
         }
 
-        context.Pet.Remove(petToDelete);
-        await context.SaveChangesAsync();
-
-        NavigationManager.NavigateTo("/pets");
+        // ✅ Get and store the CSRF token
+        var token = Antiforgery.GetAndStoreTokens(HttpContextAccessor.HttpContext)?.RequestToken;
+        XsrfToken = token ?? "";
     }
+
+    private async Task DeletePet()
+    {
+        if (Pet is null) return;
+
+        try
+        {
+            using var context = DbFactory.CreateDbContext();
+            var petToDelete = await context.Pet.FirstOrDefaultAsync(p => p.Id == Pet.Id);
+
+            if (petToDelete is null)
+            {
+                Console.WriteLine("Pet not found, redirecting...");
+                NavigationManager.NavigateTo("notfound");
+                return;
+            }
+
+            context.Pet.Remove(petToDelete);
+            await context.SaveChangesAsync();
+
+            showSuccessMessage = true;
+            StateHasChanged();
+
+            Console.WriteLine("Pet deleted successfully! Redirecting...");
+            await Task.Delay(1000);
+            NavigationManager.NavigateTo("/pets");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting pet: {ex.Message}");
+        }
+    }
+
 }
